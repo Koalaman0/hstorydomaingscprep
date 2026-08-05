@@ -1,0 +1,7 @@
+{
+  "name": "hstorydomaingscprep",
+  "private": true,
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
