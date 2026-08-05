@@ -1,0 +1,9 @@
+{
+  "name": "hstorydomaingscprep",
+  "compatibility_date": "2026-08-05",
+  "main": "functions/_worker-entry.js",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}
