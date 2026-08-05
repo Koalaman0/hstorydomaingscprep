@@ -246,6 +246,31 @@ input:focus, textarea:focus, select:focus { border-color: var(--brass); }
 .admin-cta.is-visible { display: inline-flex; }
 .reader-cta.is-hidden { display: none; }
 
+/* ---------- 푸터 ---------- */
+.site-footer { background: var(--ink); color: var(--paper); margin-top: 80px; padding-top: 48px; }
+.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; }
+.footer-brand .brand-mark { background: transparent; border-color: var(--brass); color: var(--brass-light); }
+.footer-brand p { font-size: 14px; color: #B7C0D1; margin: 10px 0 0; }
+.footer-brand strong { color: var(--paper); }
+.footer-owner { font-size: 13px; color: #96A1B6; margin-top: 8px !important; }
+.footer-owner a { color: var(--brass-light); }
+.footer-owner a:hover { color: #fff; text-decoration: underline; }
+.footer-col h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--brass-light); margin-bottom: 14px; }
+.footer-col ul li { padding: 5px 0; }
+.footer-col ul li a { font-size: 14px; color: #96A1B6; }
+.footer-col ul li a:hover { color: #fff; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #6B7690; }
+.footer-bottom a { color: #96A1B6; }
+.footer-bottom a:hover { color: #fff; }
+.footer-contact { margin: 0; }
+@media (max-width: 960px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+}
+@media (max-width: 640px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
 /* ---------- 사이트맵 ---------- */
 .sitemap-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 32px; }
 .sitemap-grid h2 { font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
