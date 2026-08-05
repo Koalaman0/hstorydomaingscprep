@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카테고리 전체 보기</title>
+<meta name="description" content="히스토리노트의 대표 카테고리 목록입니다. 한국사, 세계사, 인물, 전쟁과 사건, 유물과 문화유산 등 주제별로 글을 찾아볼 수 있습니다.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://historynote-example.com/categories/">
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="히스토리노트">
+<meta property="og:title" content="카테고리 전체 보기">
+<meta property="og:description" content="히스토리노트의 대표 카테고리 목록입니다. 한국사, 세계사, 인물, 전쟁과 사건, 유물과 문화유산 등 주제별로 글을 찾아볼 수 있습니다.">
+<meta property="og:url" content="https://historynote-example.com/categories/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="카테고리 전체 보기">
+<meta name="twitter:description" content="히스토리노트의 대표 카테고리 목록입니다. 한국사, 세계사, 인물, 전쟁과 사건, 유물과 문화유산 등 주제별로 글을 찾아볼 수 있습니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+
+</head>
+<body class="">
+<a class="skip-link" href="#main">본문 바로가기</a>
+<div id="admin-bar" class="admin-bar admin-only" hidden>
+  <div class="admin-bar-inner">
+    <span>관리자 모드로 접속 중입니다</span>
+    <a href="/admin/">대시보드</a>
+    <a href="/admin/#post-new">새 글 작성</a>
+    <a href="/admin/#column-new">새 칼럼 작성</a>
+    <button type="button" id="admin-logout">로그아웃</button>
+  </div>
+</div>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark" aria-hidden="true">HN</span>
+      <span class="brand-text">
+        <strong>히스토리노트</strong>
+        <small>누구나 쉽게 읽는 역사 이야기</small>
+      </span>
+    </a>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+      <span class="sr-only">메뉴 열기</span>
+    </button>
+    <nav class="site-nav" id="site-nav">
+      <ul><li><a href="/">홈</a></li><li><a href="/categories/" class="active">카테고리</a></li><li><a href="/columns/">칼럼</a></li><li><a href="/about/">사이트 소개</a></li><li><a href="/author/">운영자</a></li><li><a href="/contact/">문의</a></li><li><a href="/login/" class="nav-login reader-cta">로그인</a></li></ul>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<nav class="breadcrumb" aria-label="브레드크럼"><ol><li><a href="/">홈</a></li><li aria-current="page">카테고리</li></ol></nav><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "홈", "item": "https://historynote-example.com/"}, {"@type": "ListItem", "position": 2, "name": "카테고리"}]}</script>
+<section class="section">
+  <div class="wrap">
+    <span class="section-eyebrow">카테고리</span>
+    <h1>히스토리노트의 주제 구조</h1>
+    <p class="section-desc">아래 다섯 개 카테고리를 중심으로 콘텐츠를 운영하고 있습니다. 관심 있는 주제부터 편하게 살펴보세요.</p>
+    <div class="cat-strip" style="grid-template-columns:repeat(3,1fr);margin-top:28px;">
+    <div class="cat-chip">
+      <span class="idx">01</span>
+      <h3><a href="/categories/korean-history-intro/">한국사 입문</a></h3>
+      <p>삼국시대부터 조선까지, 한국사의 큰 흐름을 처음 잡아가는 사람들을 위한 글을 모았습니다. 연도 암기보다 맥락을 이해하는 데 초점을 둡니다.</p>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--brass-dark);">3개의 글</p>
+    </div>
+    <div class="cat-chip">
+      <span class="idx">02</span>
+      <h3><a href="/categories/world-history-intro/">세계사 입문</a></h3>
+      <p>이집트, 로마, 중세 유럽처럼 이름은 익숙하지만 막상 설명하기는 어려운 세계사 주제를 입문자 눈높이로 풀어봅니다.</p>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--brass-dark);">3개의 글</p>
+    </div>
+    <div class="cat-chip">
+      <span class="idx">03</span>
+      <h3><a href="/categories/historical-figures/">역사 속 인물</a></h3>
+      <p>한 시대를 만들거나 바꾼 인물들의 삶과 선택을 다룹니다. 위인전 요약이 아니라, 그들이 놓였던 상황을 함께 짚습니다.</p>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--brass-dark);">3개의 글</p>
+    </div>
+    <div class="cat-chip">
+      <span class="idx">04</span>
+      <h3><a href="/categories/wars-and-events/">전쟁과 사건</a></h3>
+      <p>역사의 흐름을 크게 바꾼 전쟁과 사건을 원인과 전개, 결과 순으로 정리합니다. 시간 순서가 헷갈리는 분들을 위한 코너입니다.</p>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--brass-dark);">3개의 글</p>
+    </div>
+    <div class="cat-chip">
+      <span class="idx">05</span>
+      <h3><a href="/categories/heritage-and-artifacts/">유물과 문화유산</a></h3>
+      <p>지금도 남아 우리에게 이야기를 건네는 유물과 유적을 소개합니다. 답사나 박물관 관람 전에 읽으면 도움이 됩니다.</p>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--brass-dark);">3개의 글</p>
+    </div></div>
+  </div>
+</section>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">HN</span>
+      <p><strong>히스토리노트</strong><br>누구나 쉽게 읽는 역사 이야기</p>
+      <p class="footer-owner">운영자 <a href="/author/" class="owner-link ">이가비</a> · <a href="mailto:gabi0324@gmail.com">gabi0324@gmail.com</a></p>
+    </div>
+    <div class="footer-col">
+      <h2>카테고리</h2>
+      <ul><li><a href="/categories/korean-history-intro/">한국사 입문</a></li><li><a href="/categories/world-history-intro/">세계사 입문</a></li><li><a href="/categories/historical-figures/">역사 속 인물</a></li><li><a href="/categories/wars-and-events/">전쟁과 사건</a></li><li><a href="/categories/heritage-and-artifacts/">유물과 문화유산</a></li></ul>
+    </div>
+    <div class="footer-col">
+      <h2>사이트</h2>
+      <ul>
+        <li><a href="/about/">사이트 소개</a></li>
+        <li><a href="/author/">운영자 소개</a></li>
+        <li><a href="/columns/">칼럼</a></li>
+        <li><a href="/contact/">문의하기</a></li>
+        <li><a href="/sitemap/">사이트맵</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h2>정책</h2>
+      <ul>
+        <li><a href="/privacy/">개인정보처리방침</a></li>
+        <li><a href="/terms/">이용약관</a></li>
+        <li><a href="/disclaimer/">면책고지</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>&copy; 2026 히스토리노트. 이 사이트의 모든 글은 운영자 <a href="/author/" class="owner-link ">이가비</a> 및 필진이 작성했습니다.</p>
+    <p class="footer-contact">문의: <a href="mailto:gabi0324@gmail.com">gabi0324@gmail.com</a></p>
+  </div>
+</footer>
+<script src="/assets/js/common.js"></script>
+</body>
+</html>
