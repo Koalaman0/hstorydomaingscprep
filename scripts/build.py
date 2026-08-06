@@ -116,6 +116,8 @@ def head(title, description, canonical_path, og_type="website", json_ld=None, no
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4813061242876854"
+     crossorigin="anonymous"></script>
 {ld_block}"""
 
 def breadcrumb_html(items):
