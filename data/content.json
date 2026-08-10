@@ -1183,6 +1183,42 @@
         "intro-three-kingdoms"
       ],
       "faq": []
+    },
+    {
+      "slug": "romastory",
+      "title": "안녕",
+      "subtitle": "요약",
+      "category": "korean-history-intro",
+      "summary": "야르르",
+      "published": "2026-08-10",
+      "modified": "2026-08-10",
+      "featured": false,
+      "status": "published",
+      "toc": [
+        "본문"
+      ],
+      "body": [
+        [
+          "본문",
+          [
+            "본문이다."
+          ]
+        ]
+      ],
+      "key_points": [
+        "본문"
+      ],
+      "mistakes": [
+        "초보임"
+      ],
+      "checklist": [
+        "체크해"
+      ],
+      "related": [
+        "rome",
+        "story"
+      ],
+      "faq": []
     }
   ],
   "columns": [
