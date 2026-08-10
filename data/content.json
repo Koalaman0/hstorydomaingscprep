@@ -14,9 +14,9 @@
   },
   "categories": [
     {
-      "slug": "rome-history-intro",
-      "name": "로마 이야기",
-      "desc": ""
+      "slug": "korean-history-intro",
+      "name": "로마 입문",
+      "desc": "삼국시대부터 조선까지, 한국사의 큰 흐름을 처음 잡아가는 사람들을 위한 글을 모았습니다. 연도 암기보다 맥락을 이해하는 데 초점을 둡니다."
     },
     {
       "slug": "world-history-intro",
@@ -37,6 +37,11 @@
       "slug": "heritage-and-artifacts",
       "name": "유물과 문화유산",
       "desc": "지금도 남아 우리에게 이야기를 건네는 유물과 유적을 소개합니다. 답사나 박물관 관람 전에 읽으면 도움이 됩니다."
+    },
+    {
+      "slug": "roma",
+      "name": "로마 이야기",
+      "desc": "고대 로마"
     }
   ],
   "posts": [
@@ -1182,33 +1187,6 @@
         "gyeongbokgung-guide",
         "intro-three-kingdoms"
       ],
-      "faq": []
-    },
-    {
-      "slug": "qwe",
-      "title": "qwe",
-      "subtitle": "qwe",
-      "category": "rome-history-intro",
-      "summary": "qwe",
-      "published": "2026-08-06",
-      "modified": "2026-08-06",
-      "featured": false,
-      "status": "published",
-      "toc": [
-        "본문"
-      ],
-      "body": [
-        [
-          "본문",
-          [
-            "qweewq"
-          ]
-        ]
-      ],
-      "key_points": [],
-      "mistakes": [],
-      "checklist": [],
-      "related": [],
       "faq": []
     }
   ],
