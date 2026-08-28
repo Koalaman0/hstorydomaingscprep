@@ -40,6 +40,14 @@ def fmt_date(d):
     y, m, dd = d.split("-")
     return f"{y}.{m}.{dd}"
 
+_FIRST_IMG_RE = re.compile(r'<img[^>]+src="([^"]+)"', re.IGNORECASE)
+
+def first_image(body_html):
+    if not body_html:
+        return None
+    m = _FIRST_IMG_RE.search(body_html)
+    return m.group(1) if m else None
+
 def is_published(item):
     return item.get("status", "published") != "draft"
 
@@ -266,13 +274,24 @@ def write_page(rel_dir, html_str):
 def post_card_html(p, kind="post"):
     is_col = kind == "column"
     href = f"/columns/{p['slug']}/" if is_col else f"/posts/{p['slug']}/"
-    tag = f'<span class="tag tag-column">칼럼</span>' if is_col else f'<span class="tag">{esc(cat(p["category"])["name"])}</span>'
+    tag = f'<span class="tag tag-column">칼럼</span>' if is_col else f'<span class="tag" data-cat="{esc(p["category"])}">{esc(cat(p["category"])["name"])}</span>'
     feat = ' <span class="tag tag-featured">추천</span>' if p.get("featured") else ""
+
+    thumb_url = None if is_col else first_image(p.get("body_html"))
+    if thumb_url:
+        thumb_html = f'<div class="post-card-thumb" style="background-image:url(\'{esc(thumb_url)}\')"></div>'
+    else:
+        initial = esc((SITE["name"] if is_col else cat(p["category"])["name"])[:1])
+        thumb_html = f'<div class="post-card-thumb post-card-thumb-placeholder"><span>{initial}</span></div>'
+
     return f"""<a class="post-card" href="{href}">
-  {tag}{feat}
-  <h3>{esc(p['title'])}</h3>
-  <p>{esc(p.get('summary',''))}</p>
-  <div class="card-meta"><span>{fmt_date(p['published'])}</span><span>수정 {fmt_date(p['modified'])}</span></div>
+  {thumb_html}
+  <div class="post-card-body">
+    {tag}{feat}
+    <h3>{esc(p['title'])}</h3>
+    <p>{esc(p.get('summary',''))}</p>
+    <div class="card-meta"><span>{fmt_date(p['published'])}</span><span>수정 {fmt_date(p['modified'])}</span></div>
+  </div>
 </a>"""
 
 # ---------------------------------------------------------------------------

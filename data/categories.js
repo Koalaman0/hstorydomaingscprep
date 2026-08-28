@@ -3,7 +3,7 @@ window.HN_SEED = window.HN_SEED || {};
 window.HN_SEED.categories = [
   {
     "slug": "korean-history-intro",
-    "name": "한국사 입문",
+    "name": "로마 입문",
     "desc": "삼국시대부터 조선까지, 한국사의 큰 흐름을 처음 잡아가는 사람들을 위한 글을 모았습니다. 연도 암기보다 맥락을 이해하는 데 초점을 둡니다."
   },
   {

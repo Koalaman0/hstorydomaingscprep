@@ -73,7 +73,7 @@ p { margin: 0 0 1em; }
 .nav-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 180px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-m); box-shadow: var(--shadow-card); padding: 6px; z-index: 150; }
 .nav-dropdown li { width: 100%; }
 .nav-dropdown a { display: block; padding: 8px 12px; border-radius: var(--radius-s); font-size: 14px; }
-.site-nav li.has-dropdown:hover .nav-dropdown, .site-nav li.has-dropdown:focus-within .nav-dropdown { display: block; }
+.nav-dropdown.is-open { display: block; }
 @media (max-width: 640px) { .nav-dropdown { display: none !important; } }
 .nav-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; padding: 8px; cursor: pointer; }
 .nav-toggle span { width: 22px; height: 2px; background: var(--ink); display: block; }
@@ -121,8 +121,13 @@ p { margin: 0 0 1em; }
 .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-.post-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-card); transition: transform .15s ease, box-shadow .15s ease; }
+.post-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-l); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-card); transition: transform .15s ease, box-shadow .15s ease; }
 .post-card:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(31,42,60,0.08), 0 16px 30px -14px rgba(31,42,60,0.26); }
+.post-card:hover .post-card-thumb { transform: scale(1.04); }
+.post-card-thumb { aspect-ratio: 16 / 10; background-size: cover; background-position: center; background-color: var(--paper-alt); transition: transform .3s ease; }
+.post-card-thumb-placeholder { background-image: linear-gradient(135deg, var(--ink) 0%, var(--ink-soft) 100%); display: flex; align-items: center; justify-content: center; }
+.post-card-thumb-placeholder span { font-family: var(--font-display); font-size: 40px; font-weight: 700; color: var(--brass-light); opacity: .8; }
+.post-card-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .post-card .tag { align-self: flex-start; }
 .post-card h3 { font-size: 18.5px; margin: 4px 0 2px; }
 .post-card p { color: var(--ink-soft); font-size: 14.5px; margin: 0; }
@@ -131,6 +136,12 @@ p { margin: 0 0 1em; }
 .tag { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 700; letter-spacing: .03em; padding: 4px 10px; border-radius: 999px; background: var(--paper-alt); color: var(--brass-dark); border: 1px solid var(--brass-light); }
 .tag-column { background: #F3E7E1; color: var(--accent-column); border-color: #E3C9BC; }
 .tag-featured { background: var(--ink); color: var(--brass-light); border-color: var(--ink); }
+/* 카테고리별 강조색 (있는 카테고리만 매칭, 없으면 기본 .tag 스타일 유지) */
+.tag[data-cat="korean-history-intro"] { background: #FBEAE0; color: #B5502E; border-color: #EFCBB6; }
+.tag[data-cat="world-history-intro"] { background: #E4F1F2; color: #2E6B78; border-color: #C3DFE2; }
+.tag[data-cat="historical-figures"] { background: #EFE6F5; color: #6B4A82; border-color: #D9C7E9; }
+.tag[data-cat="wars-and-events"] { background: #F7E6E6; color: #9C3B3B; border-color: #E9C5C5; }
+.tag[data-cat="heritage-and-artifacts"] { background: #EFF1E3; color: #5C6B3F; border-color: #D8DCC0; }
 
 /* ---------- 카테고리 리본 ---------- */
 .cat-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
