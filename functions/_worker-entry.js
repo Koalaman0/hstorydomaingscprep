@@ -3,6 +3,7 @@ import { onRequestPost as logoutPost } from "./api/logout.js";
 import { onRequestGet as sessionGet } from "./api/session.js";
 import { onRequestPost as contentPost } from "./api/content.js";
 import { onRequestPost as uploadPost } from "./api/upload.js";
+import { onRequestGet as mediaGet, onRequestDelete as mediaDelete } from "./api/media.js";
 
 export default {
     async fetch(request, env, ctx) {
@@ -14,6 +15,8 @@ export default {
         if (url.pathname === "/api/session" && request.method === "GET") return sessionGet(c);
         if (url.pathname === "/api/content" && request.method === "POST") return contentPost(c);
         if (url.pathname === "/api/upload" && request.method === "POST") return uploadPost(c);
+        if (url.pathname === "/api/media" && request.method === "GET") return mediaGet(c);
+        if (url.pathname === "/api/media" && request.method === "DELETE") return mediaDelete(c);
 
         return env.ASSETS.fetch(request);
     },

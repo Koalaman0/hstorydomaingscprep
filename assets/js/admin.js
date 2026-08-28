@@ -364,6 +364,7 @@
       '      <button data-view="posts">일반 글 관리</button>' +
       '      <button data-view="columns">칼럼 관리</button>' +
       '      <button data-view="categories">카테고리</button>' +
+      '      <button data-view="media">미디어</button>' +
       '      <button data-view="settings">사이트 설정</button>' +
       '    </nav>' +
       '    <div class="admin-sidebar-foot">관리자로 로그인됨<br><a href="/" style="color:#D9C29A;">&larr; 사이트로 이동</a><br><button id="sidebar-logout" style="background:none;border:none;color:#D9C29A;cursor:pointer;padding:0;margin-top:6px;">로그아웃</button></div>' +
@@ -385,7 +386,7 @@
     else { navigate(state.view); }
   }
 
-  var titles = { dashboard: "대시보드", posts: "일반 글 관리", columns: "칼럼 관리", categories: "카테고리", settings: "사이트 설정" };
+  var titles = { dashboard: "대시보드", posts: "일반 글 관리", columns: "칼럼 관리", categories: "카테고리", media: "미디어", settings: "사이트 설정" };
 
   function navigate(view) {
     state.view = view;
@@ -398,7 +399,92 @@
     else if (view === "posts") { body.innerHTML = listView("post"); bindListActions("post"); }
     else if (view === "columns") { body.innerHTML = listView("column"); bindListActions("column"); }
     else if (view === "categories") { body.innerHTML = renderCategories(); bindCategoryActions(); }
+    else if (view === "media") { body.innerHTML = '<p style="color:var(--ink-faint);">불러오는 중...</p>'; loadMediaView(body); }
     else if (view === "settings") { body.innerHTML = renderSettings(); bindSettings(); }
+  }
+
+  // ---------------------------------------------------------------
+  // 미디어 (업로드한 이미지 관리)
+  // ---------------------------------------------------------------
+  function collectUsedImageUrls() {
+    var used = {};
+    getPosts().concat(getColumns()).forEach(function (item) {
+      var html = item.body_html || "";
+      var re = /src="([^"]+)"/g;
+      var m;
+      while ((m = re.exec(html))) used[m[1]] = true;
+    });
+    return used;
+  }
+
+  function humanSize(bytes) {
+    if (!bytes && bytes !== 0) return "";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function loadMediaView(body) {
+    fetch("/api/media", { credentials: "same-origin" })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok) {
+          body.innerHTML = '<div class="admin-card">불러오기 실패: ' + esc(result.data.error || "알 수 없는 오류") + '</div>';
+          return;
+        }
+        renderMediaGrid(body, result.data.items || []);
+      })
+      .catch(function () {
+        body.innerHTML = '<div class="admin-card">미디어 목록을 불러오는 중 문제가 발생했습니다.</div>';
+      });
+  }
+
+  function renderMediaGrid(body, items) {
+    var used = collectUsedImageUrls();
+    if (!items.length) {
+      body.innerHTML = '<div class="admin-card">업로드된 이미지가 없습니다. 글/칼럼 작성 화면의 에디터에서 이미지를 넣으면 여기에 나타납니다.</div>';
+      return;
+    }
+    var cards = items.map(function (item, idx) {
+      var inUse = !!used[item.url];
+      return (
+        '<div class="media-card">' +
+        '  <img src="' + esc(item.url) + '" alt="">' +
+        '  <div class="media-meta">' +
+        '    <span class="media-name" title="' + esc(item.name) + '">' + esc(item.name) + '</span>' +
+        '    <span class="media-size">' + humanSize(item.size) + '</span>' +
+        '    <span class="status-pill ' + (inUse ? 'status-published' : 'status-draft') + '">' + (inUse ? '사용 중' : '미사용 추정') + '</span>' +
+        '  </div>' +
+        '  <button type="button" class="btn btn-danger btn-sm" data-media-delete="' + idx + '">삭제</button>' +
+        '</div>'
+      );
+    }).join("");
+    body.innerHTML =
+      '<div class="admin-card">' +
+      '  <p style="color:var(--ink-faint);font-size:13.5px;margin-top:0;">"미사용 추정"은 현재 이 브라우저에 있는 글/칼럼 본문을 기준으로 판단한 것입니다. ' +
+      '아직 "지금 사이트에 게시"를 하지 않은 초안은 반영되지 않을 수 있으니, 삭제 전에 한 번 더 확인해 주세요.</p>' +
+      '  <div class="media-grid">' + cards + '</div>' +
+      '</div>';
+
+    document.querySelectorAll('[data-media-delete]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var item = items[Number(btn.dataset.mediaDelete)];
+        if (!window.confirm('"' + item.name + '" 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+        btn.disabled = true;
+        fetch("/api/media", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ path: item.path, sha: item.sha }),
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (result) {
+            if (result.ok) navigate("media");
+            else { alert("삭제 실패: " + (result.data.error || "알 수 없는 오류")); btn.disabled = false; }
+          })
+          .catch(function () { alert("삭제 요청 중 문제가 발생했습니다."); btn.disabled = false; });
+      });
+    });
   }
 
   function listView(kind) {

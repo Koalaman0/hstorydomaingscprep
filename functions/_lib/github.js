@@ -39,6 +39,33 @@ export async function getFile(env, path) {
   return { content: fromBase64(data.content), sha: data.sha };
 }
 
+// path가 폴더면 그 안의 파일 목록을 반환한다 (하위 폴더 없이 한 단계만).
+export async function listDir(env, path) {
+  const branch = env.GITHUB_BRANCH || "main";
+  const res = await fetch(`${apiBase(env)}/${path}?ref=${encodeURIComponent(branch)}`, {
+    headers: authHeaders(env),
+  });
+  if (res.status === 404) return [];
+  if (!res.ok) {
+    throw new Error(`GitHub listDir 실패 (${res.status}): ${await res.text()}`);
+  }
+  const data = await res.json();
+  return Array.isArray(data) ? data.filter((item) => item.type === "file") : [];
+}
+
+export async function deleteFile(env, path, sha, message) {
+  const branch = env.GITHUB_BRANCH || "main";
+  const res = await fetch(`${apiBase(env)}/${path}`, {
+    method: "DELETE",
+    headers: { ...authHeaders(env), "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sha, branch }),
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub 삭제 실패 (${res.status}): ${await res.text()}`);
+  }
+  return res.json();
+}
+
 export async function putFile(env, path, contentStr, message, sha) {
   return putRaw(env, path, toBase64(contentStr), message, sha);
 }
