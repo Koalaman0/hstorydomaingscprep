@@ -9,7 +9,7 @@
   "kv_namespaces": [
     {
       "binding": "RATE_LIMIT_KV",
-      "id": "여기에_KV_네임스페이스_ID_붙여넣기"
+      "id": "hstory-ratelimit"
     }
   ]
 }
