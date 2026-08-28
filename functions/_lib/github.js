@@ -40,19 +40,28 @@ export async function getFile(env, path) {
 }
 
 export async function putFile(env, path, contentStr, message, sha) {
+  return putRaw(env, path, toBase64(contentStr), message, sha);
+}
+
+// 이미지 등 바이너리 파일용 — content가 이미 base64로 인코딩되어 있다고 가정한다.
+export async function putBinaryFile(env, path, base64Content, message) {
+  return putRaw(env, path, base64Content, message, undefined);
+}
+
+async function putRaw(env, path, base64Content, message, sha) {
   const branch = env.GITHUB_BRANCH || "main";
   const res = await fetch(`${apiBase(env)}/${path}`, {
     method: "PUT",
     headers: { ...authHeaders(env), "Content-Type": "application/json" },
     body: JSON.stringify({
       message,
-      content: toBase64(contentStr),
+      content: base64Content,
       sha,
       branch,
     }),
   });
   if (!res.ok) {
-    throw new Error(`GitHub putFile 실패 (${res.status}): ${await res.text()}`);
+    throw new Error(`GitHub 저장 실패 (${res.status}): ${await res.text()}`);
   }
   return res.json();
 }

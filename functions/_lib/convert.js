@@ -68,6 +68,8 @@ export function convertPost(raw, existingBySlug) {
   const mistakes = "mistakesText" in raw ? parseLines(raw.mistakesText) : (raw.mistakes || existing.mistakes || []);
   const checklist = "checklistText" in raw ? parseLines(raw.checklistText) : (raw.checklist || existing.checklist || []);
 
+  const bodyHtml = raw.body_html ?? existing.body_html ?? "";
+
   return {
     slug,
     title: raw.title ?? existing.title ?? "",
@@ -80,6 +82,7 @@ export function convertPost(raw, existingBySlug) {
     status: raw.status ?? existing.status ?? "published",
     toc: body.map((sec) => sec[0]),
     body,
+    body_html: bodyHtml,
     key_points: keyPoints,
     mistakes,
     checklist,
@@ -100,6 +103,8 @@ export function convertColumn(raw, existingBySlug) {
     body = raw.body || existing.body || [""];
   }
 
+  const bodyHtml = raw.body_html ?? existing.body_html ?? "";
+
   return {
     slug,
     title: raw.title ?? existing.title ?? "",
@@ -109,5 +114,6 @@ export function convertColumn(raw, existingBySlug) {
     featured: Boolean(raw.featured ?? existing.featured ?? false),
     status: raw.status ?? existing.status ?? "published",
     body,
+    body_html: bodyHtml,
   };
 }

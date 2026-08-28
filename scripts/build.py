@@ -43,6 +43,27 @@ def fmt_date(d):
 def is_published(item):
     return item.get("status", "published") != "draft"
 
+_HEADING_RE = re.compile(r'<h([1-3])((?:\s+[^>]*)?)>(.*?)</h\1>', re.IGNORECASE | re.DOTALL)
+_TAG_RE = re.compile(r'<[^>]+>')
+
+def process_rich_body(html_str):
+    """관리자의 리치 텍스트 에디터(Quill)가 만든 본문 HTML에 목차용 id를 매기고,
+    목차에 쓸 제목 목록을 함께 뽑아낸다."""
+    toc = []
+    counter = [0]
+
+    def _repl(m):
+        level, attrs, inner = m.group(1), m.group(2), m.group(3)
+        idx = counter[0]
+        counter[0] += 1
+        text = _TAG_RE.sub('', inner).strip()
+        toc.append(text)
+        attrs_clean = re.sub(r'\s+id="[^"]*"', '', attrs)
+        return f'<h{level}{attrs_clean} id="sec-{idx}">{inner}</h{level}>'
+
+    new_html = _HEADING_RE.sub(_repl, html_str or "")
+    return new_html, toc
+
 # 실제 공개 페이지로 만들 항목 (초안(draft)은 admin에는 남아있지만 공개되지 않습니다)
 PUBLISHED_POSTS = [p for p in POSTS if is_published(p)]
 PUBLISHED_COLUMNS = [c for c in COLUMNS if is_published(c)]
@@ -417,12 +438,17 @@ def render_category_detail(c):
 # ---------------------------------------------------------------------------
 def render_post_detail(p):
     c = cat(p["category"])
-    toc_source = p.get("toc") or [h for h, _ in p["body"]]
+    body_html_raw = p.get("body_html")
+    if body_html_raw:
+        body_sections, extracted_toc = process_rich_body(body_html_raw)
+        toc_source = extracted_toc
+    else:
+        toc_source = p.get("toc") or [h for h, _ in p["body"]]
+        body_sections = "".join(
+            f'<h2 id="sec-{i}">{esc(h)}</h2>' + "".join(f"<p>{esc(par)}</p>" for par in pars)
+            for i, (h, pars) in enumerate(p["body"])
+        )
     toc_html = "".join(f'<li><a href="#sec-{i}">{esc(h)}</a></li>' for i, h in enumerate(toc_source))
-    body_sections = "".join(
-        f'<h2 id="sec-{i}">{esc(h)}</h2>' + "".join(f"<p>{esc(par)}</p>" for par in pars)
-        for i, (h, pars) in enumerate(p["body"])
-    )
     key_points_list = p.get("key_points") or []
     mistakes_list = p.get("mistakes") or []
     checklist_list = p.get("checklist") or []
@@ -513,7 +539,11 @@ def render_columns_list():
                 "/columns/", "/columns/", body)
 
 def render_column_detail(c):
-    paras = "".join(f"<p>{esc(par)}</p>" for par in c["body"])
+    body_html_raw = c.get("body_html")
+    if body_html_raw:
+        paras, _ = process_rich_body(body_html_raw)
+    else:
+        paras = "".join(f"<p>{esc(par)}</p>" for par in c["body"])
     others = [x for x in PUBLISHED_COLUMNS if x["slug"] != c["slug"]][:3]
     related_html = "".join(post_card_html(o, "column") for o in others)
     article_ld = {
@@ -895,6 +925,7 @@ def render_admin():
 <html lang="ko">
 <head>
 {head("관리자 모드 — " + SITE['name'], "관리자 전용 콘텐츠 관리 화면입니다.", "/admin/", noindex=True)}
+<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 {body_html}
@@ -902,6 +933,7 @@ def render_admin():
 <script src="/data/categories.js"></script>
 <script src="/data/posts.js"></script>
 <script src="/data/columns.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script src="/assets/js/common.js"></script>
 <script src="/assets/js/admin.js"></script>
 </body>
@@ -921,7 +953,8 @@ def posts_for_js():
             "published": p["published"], "modified": p["modified"],
             "featured": p.get("featured", False), "status": p.get("status", "published"),
             "toc": p.get("toc") or [h for h, _ in p.get("body", [])],
-            "body": p.get("body", []), "key_points": p.get("key_points", []),
+            "body": p.get("body", []), "body_html": p.get("body_html", ""),
+            "key_points": p.get("key_points", []),
             "mistakes": p.get("mistakes", []), "checklist": p.get("checklist", []),
             "related": p.get("related", []), "faq": p.get("faq", []),
         })
@@ -934,7 +967,7 @@ def columns_for_js():
             "slug": c["slug"], "title": c["title"], "summary": c.get("summary", ""),
             "published": c["published"], "modified": c["modified"],
             "featured": c.get("featured", False), "status": c.get("status", "published"),
-            "body_paragraphs": c.get("body", []),
+            "body": c.get("body", []), "body_html": c.get("body_html", ""),
         })
     return out
 

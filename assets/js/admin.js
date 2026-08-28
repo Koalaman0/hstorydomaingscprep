@@ -152,9 +152,8 @@
   function renderEditForm(kind, item) {
     var isColumn = kind === "column";
     item = item || { slug: "", title: "", subtitle: "", category: getCategories()[0] && getCategories()[0].slug,
-      summary: "", bodyText: "", faqText: "", related: "", featured: false, status: "draft",
+      summary: "", body_html: "", faqText: "", related: "", featured: false, status: "draft",
       published: todayStr(), modified: todayStr() };
-    var bodyText = item.bodyText || (item.body ? bodyToPlainText(item.body) : "");
     var relatedText = item.related ? (Array.isArray(item.related) ? item.related.join(", ") : item.related) : "";
     var faqText = item.faqText || (item.faq ? faqToPlainText(item.faq) : "");
     var keyPointsText = item.keyPointsText || (item.key_points ? item.key_points.join("\n") : "");
@@ -172,7 +171,10 @@
         '    <div class="field"><label>카테고리</label><select name="category">' + catOptions(item.category) + '</select></div>'
       ) +
       '    <div class="field"><label>요약(목록/메타에 노출)</label><textarea name="summary" rows="2">' + esc(item.summary) + '</textarea></div>' +
-      '    <div class="field"><label>본문 <span class="hint">(소제목은 줄 앞에 "## "를 붙이고, 문단 구분은 빈 줄로 — 예: ## 첫 소제목 다음 줄에 문단)</span></label><textarea name="bodyText" rows="10" placeholder="## 문제 제기&#10;여기에 문단을 씁니다.&#10;&#10;## 핵심 설명&#10;다음 문단...">' + esc(bodyText) + '</textarea></div>' +
+      '    <div class="field"><label>본문 <span class="hint">(소제목은 "제목 2/3" 서식을 쓰면 목차에 자동으로 반영됩니다)</span></label>' +
+      '      <div id="rich-editor-wrap"><div id="rich-editor"></div></div>' +
+      '      <input type="hidden" name="body_html">' +
+      '    </div>' +
       (isColumn ? '' :
         '    <div class="field"><label>핵심 요약 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="keyPointsText" rows="3">' + esc(keyPointsText) + '</textarea></div>' +
         '    <div class="field"><label>초보자가 자주 하는 실수 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="mistakesText" rows="3">' + esc(mistakesText) + '</textarea></div>' +
@@ -194,9 +196,17 @@
       '</form>'
     );
   }
-  function bodyToPlainText(sections) {
-    if (!sections) return "";
-    return sections.map(function (sec) { return "## " + sec[0] + "\n" + sec[1].join("\n\n"); }).join("\n\n");
+  function legacyBodyToHtml(sections) {
+    if (!sections || !sections.length) return "";
+    return sections.map(function (sec) {
+      var heading = "<h2>" + esc(sec[0]) + "</h2>";
+      var paras = sec[1].map(function (par) { return "<p>" + esc(par) + "</p>"; }).join("");
+      return heading + paras;
+    }).join("");
+  }
+  function legacyColumnBodyToHtml(paragraphs) {
+    if (!paragraphs || !paragraphs.length) return "";
+    return paragraphs.map(function (par) { return "<p>" + esc(par) + "</p>"; }).join("");
   }
   function faqToPlainText(faq) {
     if (!faq) return "";
@@ -415,6 +425,79 @@
     });
   }
 
+  // ---------------------------------------------------------------
+  // 리치 텍스트 에디터 (Quill) — 글씨 크기/색/이미지 삽입 지원
+  // ---------------------------------------------------------------
+  var currentQuill = null;
+
+  function ensureQuillFormatsRegistered() {
+    if (window.__hnQuillFormatsRegistered) return;
+    window.__hnQuillFormatsRegistered = true;
+    ["size", "color", "background", "align"].forEach(function (name) {
+      try {
+        var Attr = Quill.import("attributors/style/" + name);
+        if (name === "size") Attr.whitelist = ["14px", "16px", "20px", "24px", "32px"];
+        Quill.register(Attr, true);
+      } catch (e) { /* 버전에 따라 없을 수 있어 무시 */ }
+    });
+  }
+
+  function createRichEditor(initialHtml) {
+    ensureQuillFormatsRegistered();
+    var quill = new Quill("#rich-editor", {
+      theme: "snow",
+      modules: {
+        toolbar: [
+          [{ header: [2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ size: ["14px", false, "20px", "24px", "32px"] }],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["blockquote", "link", "image"],
+          ["clean"],
+        ],
+      },
+    });
+    if (initialHtml) quill.root.innerHTML = initialHtml;
+
+    quill.getModule("toolbar").addHandler("image", function () {
+      var input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/png,image/jpeg,image/gif,image/webp";
+      input.addEventListener("change", function () {
+        var file = input.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert("이미지는 5MB 이하만 업로드할 수 있습니다."); return; }
+        var range = quill.getSelection(true);
+        var reader = new FileReader();
+        reader.onload = function () {
+          var base64 = String(reader.result).split(",")[1];
+          fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ filename: file.name, mimeType: file.type, contentBase64: base64 }),
+          })
+            .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+            .then(function (result) {
+              if (result.ok) {
+                quill.insertEmbed(range.index, "image", result.data.url, "user");
+                quill.setSelection(range.index + 1);
+              } else {
+                alert("이미지 업로드 실패: " + (result.data.error || "알 수 없는 오류"));
+              }
+            })
+            .catch(function () { alert("이미지 업로드 중 문제가 발생했습니다."); });
+        };
+        reader.readAsDataURL(file);
+      });
+      input.click();
+    });
+
+    return quill;
+  }
+
   function openEdit(kind, slug) {
     var isColumn = kind === "column";
     var items = isColumn ? getColumns() : getPosts();
@@ -423,13 +506,19 @@
     else item = { _isNew: true };
     var body = document.getElementById("admin-view-body");
     body.innerHTML = renderEditForm(kind, item);
+
+    var initialHtml = item.body_html || (isColumn ? legacyColumnBodyToHtml(item.body) : legacyBodyToHtml(item.body));
+    currentQuill = createRichEditor(initialHtml);
+
     document.getElementById("cancel-btn").addEventListener("click", function () { navigate(isColumn ? "columns" : "posts"); });
     document.getElementById("preview-btn").addEventListener("click", function () {
       var f = document.getElementById("edit-form");
-      alert("제목: " + f.title.value + "\n\n요약: " + f.summary.value + "\n\n본문 미리보기:\n" + f.bodyText.value.slice(0, 400) + (f.bodyText.value.length > 400 ? "..." : ""));
+      var text = currentQuill.getText();
+      alert("제목: " + f.title.value + "\n\n요약: " + f.summary.value + "\n\n본문 미리보기:\n" + text.slice(0, 400) + (text.length > 400 ? "..." : ""));
     });
     document.getElementById("edit-form").addEventListener("submit", function (e) {
       e.preventDefault();
+      e.target.body_html.value = currentQuill.root.innerHTML;
       saveItem(kind, e.target, item);
     });
   }
@@ -443,7 +532,7 @@
       slug: slug,
       title: form.title.value.trim(),
       summary: form.summary.value.trim(),
-      bodyText: form.bodyText.value,
+      body_html: form.body_html.value,
       status: form.status.value,
       published: form.published.value || todayStr(),
       modified: form.modified.value || todayStr(),
