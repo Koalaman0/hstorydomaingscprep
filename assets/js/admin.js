@@ -121,8 +121,8 @@
     var isColumn = kind === "column";
     var rows = items.map(function (item, idx) {
       return '<tr>' +
-        '<td>' + esc(item.title) + (item.featured ? ' <span class="tag tag-featured" style="margin-left:6px;">추천</span>' : '') + '</td>' +
-        '<td style="font-family:var(--font-mono);font-size:12.5px;color:var(--ink-faint);">' + esc(item.slug) + '</td>' +
+        '<td><div>' + esc(item.title) + (item.featured ? ' <span class="tag tag-featured" style="margin-left:6px;">추천</span>' : '') + '</div>' +
+        '<div style="font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);">' + esc(item.slug) + '</div></td>' +
         (isColumn ? '' : '<td>' + esc(catName(item.category)) + '</td>') +
         '<td>' + esc(item.modified) + '</td>' +
         '<td><span class="status-pill ' + (item.status === "draft" ? "status-draft" : "status-published") + '">' + (item.status === "draft" ? "초안" : "발행") + '</span></td>' +
@@ -133,9 +133,9 @@
         '</td></tr>';
     }).join("");
     var head = isColumn
-      ? '<tr><th>제목</th><th>슬러그</th><th>수정일</th><th>상태</th><th>작업</th></tr>'
-      : '<tr><th>제목</th><th>슬러그</th><th>카테고리</th><th>수정일</th><th>상태</th><th>작업</th></tr>';
-    return '<table class="admin-table"><thead>' + head + '</thead><tbody>' + (rows || '<tr><td colspan="6" style="color:var(--ink-faint);">아직 등록된 항목이 없습니다.</td></tr>') + '</tbody></table>';
+      ? '<tr><th>제목</th><th>수정일</th><th>상태</th><th>작업</th></tr>'
+      : '<tr><th>제목</th><th>카테고리</th><th>수정일</th><th>상태</th><th>작업</th></tr>';
+    return '<table class="admin-table"><thead>' + head + '</thead><tbody>' + (rows || '<tr><td colspan="5" style="color:var(--ink-faint);">검색 결과가 없습니다.</td></tr>') + '</tbody></table>';
   }
 
   function catName(slug) {
@@ -163,35 +163,43 @@
     return (
       '<form id="edit-form" class="admin-card">' +
       '  <h2 style="margin-top:0;">' + (isColumn ? "칼럼" : "글") + (item._isNew ? " 새로 작성" : " 수정") + '</h2>' +
-      '  <div class="form-grid">' +
+      '  <div class="form-grid-2">' +
       '    <div class="field"><label>제목</label><input type="text" name="title" value="' + esc(item.title) + '" required></div>' +
-      '    <div class="field"><label>슬러그 <span class="hint">(URL에 쓰이는 짧은 영문 주소)</span></label><input type="text" name="slug" value="' + esc(item.slug) + '" required></div>' +
+      '    <div class="field"><label>슬러그 <span class="hint">(URL 주소, 제목에서 자동 생성)</span></label><input type="text" name="slug" value="' + esc(item.slug) + '" required></div>' +
       (isColumn ? '' :
         '    <div class="field"><label>부제 / 요약 문장</label><input type="text" name="subtitle" value="' + esc(item.subtitle) + '"></div>' +
         '    <div class="field"><label>카테고리</label><select name="category">' + catOptions(item.category) + '</select></div>'
       ) +
-      '    <div class="field"><label>요약(목록/메타에 노출)</label><textarea name="summary" rows="2">' + esc(item.summary) + '</textarea></div>' +
-      '    <div class="field"><label>본문 <span class="hint">(소제목은 "제목 2/3" 서식을 쓰면 목차에 자동으로 반영됩니다)</span></label>' +
-      '      <div id="rich-editor-wrap"><div id="rich-editor"></div></div>' +
-      '      <input type="hidden" name="body_html">' +
-      '    </div>' +
+      '    <div class="field field-full"><label>요약(목록/메타에 노출)</label><textarea name="summary" rows="2">' + esc(item.summary) + '</textarea></div>' +
+      '  </div>' +
+      '  <div class="editor-field">' +
+      '    <label>본문 <span class="hint">("제목 2/3" 서식을 쓰면 목차에 자동으로 반영됩니다)</span></label>' +
+      '    <div id="rich-editor-wrap"><div id="rich-editor"></div></div>' +
+      '    <input type="hidden" name="body_html">' +
+      '  </div>' +
       (isColumn ? '' :
-        '    <div class="field"><label>핵심 요약 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="keyPointsText" rows="3">' + esc(keyPointsText) + '</textarea></div>' +
-        '    <div class="field"><label>초보자가 자주 하는 실수 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="mistakesText" rows="3">' + esc(mistakesText) + '</textarea></div>' +
-        '    <div class="field"><label>체크리스트 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="checklistText" rows="3">' + esc(checklistText) + '</textarea></div>' +
-        '    <div class="field"><label>FAQ <span class="hint">(질문|답변, 한 줄에 하나 — 선택 사항)</span></label><textarea name="faqText" rows="3">' + esc(faqText) + '</textarea></div>' +
-        '    <div class="field"><label>관련 글 슬러그 <span class="hint">(쉼표로 구분)</span></label><input type="text" name="related" value="' + esc(relatedText) + '"></div>' +
-        '    <div class="checkbox-row"><input type="checkbox" id="featured" name="featured" ' + (item.featured ? "checked" : "") + '><label for="featured">추천 글로 노출</label></div>'
+        '  <details class="edit-extra">' +
+        '    <summary>핵심 요약 · 실수 · 체크리스트 · FAQ · 관련 글 (선택 사항)</summary>' +
+        '    <div class="form-grid-2">' +
+        '      <div class="field"><label>핵심 요약 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="keyPointsText" rows="3">' + esc(keyPointsText) + '</textarea></div>' +
+        '      <div class="field"><label>초보자가 자주 하는 실수 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="mistakesText" rows="3">' + esc(mistakesText) + '</textarea></div>' +
+        '      <div class="field"><label>체크리스트 <span class="hint">(한 줄에 하나씩)</span></label><textarea name="checklistText" rows="3">' + esc(checklistText) + '</textarea></div>' +
+        '      <div class="field"><label>FAQ <span class="hint">(질문|답변, 한 줄에 하나)</span></label><textarea name="faqText" rows="3">' + esc(faqText) + '</textarea></div>' +
+        '      <div class="field field-full"><label>관련 글 슬러그 <span class="hint">(쉼표로 구분)</span></label><input type="text" name="related" value="' + esc(relatedText) + '"></div>' +
+        '      <div class="checkbox-row field-full"><input type="checkbox" id="featured" name="featured" ' + (item.featured ? "checked" : "") + '><label for="featured">추천 글로 노출</label></div>' +
+        '    </div>' +
+        '  </details>'
       ) +
+      '  <div class="form-grid-2" style="margin-top:16px;">' +
       '    <div class="field"><label>발행 상태</label><select name="status"><option value="draft"' + (item.status === "draft" ? " selected" : "") + '>초안</option><option value="published"' + (item.status !== "draft" ? " selected" : "") + '>발행</option></select></div>' +
       '    <div class="field" style="display:flex;gap:14px;"><div style="flex:1;"><label>작성일</label><input type="date" name="published" value="' + esc(item.published) + '"></div><div style="flex:1;"><label>수정일</label><input type="date" name="modified" value="' + esc(item.modified) + '"></div></div>' +
       '  </div>' +
-      '  <div style="display:flex;gap:10px;margin-top:20px;">' +
+      '  <div class="sticky-actions">' +
       '    <button type="submit" class="btn btn-primary">저장</button>' +
       '    <button type="button" id="preview-btn" class="btn btn-outline">미리보기</button>' +
       '    <button type="button" id="cancel-btn" class="btn btn-outline">목록으로</button>' +
+      '    <span style="font-size:12.5px;color:var(--ink-faint);">저장은 이 브라우저에만 임시 보관됩니다 — "지금 사이트에 게시"를 눌러야 반영돼요.</span>' +
       '  </div>' +
-      '  <p style="font-size:12.5px;color:var(--ink-faint);margin-top:14px;">저장한 내용은 이 브라우저에만 임시로 남습니다. 실제 사이트에 반영하려면 사이트 설정 화면의 "지금 사이트에 게시"를 눌러주세요.</p>' +
       (item._isNew ? '' : '  <input type="hidden" name="__origSlug" value="' + esc(item.slug) + '">') +
       '</form>'
     );
@@ -489,18 +497,42 @@
 
   function listView(kind) {
     var isColumn = kind === "column";
-    var items = isColumn ? getColumns() : getPosts();
     return (
-      '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">' +
-      '<button id="new-item-btn" class="btn btn-brass btn-sm">' + (isColumn ? "새 칼럼 작성" : "새 글 작성") + '</button>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">' +
+      '  <div style="display:flex;gap:8px;flex:1;min-width:200px;">' +
+      '    <input type="text" id="list-search" placeholder="제목으로 검색" style="max-width:240px;">' +
+      (isColumn ? '' : '    <select id="list-cat-filter"><option value="">전체 카테고리</option>' + catOptions(null) + '</select>') +
+      '  </div>' +
+      '  <button id="new-item-btn" class="btn btn-brass btn-sm">' + (isColumn ? "새 칼럼 작성" : "새 글 작성") + '</button>' +
       '</div>' +
-      '<div class="admin-card">' + renderList(items, kind) + '</div>'
+      '<div class="admin-card"><div id="list-table-body"></div></div>'
     );
   }
 
   function bindListActions(kind) {
+    var isColumn = kind === "column";
     var newBtn = document.getElementById("new-item-btn");
     if (newBtn) newBtn.addEventListener("click", function () { openEdit(kind, null); });
+
+    var searchInput = document.getElementById("list-search");
+    var catFilter = document.getElementById("list-cat-filter");
+
+    function renderFiltered() {
+      var items = (isColumn ? getColumns() : getPosts()).slice();
+      items.sort(function (a, b) { return (b.modified || "").localeCompare(a.modified || ""); });
+      var q = (searchInput.value || "").trim().toLowerCase();
+      if (q) items = items.filter(function (i) { return (i.title || "").toLowerCase().indexOf(q) > -1; });
+      if (catFilter && catFilter.value) items = items.filter(function (i) { return i.category === catFilter.value; });
+      document.getElementById("list-table-body").innerHTML = renderList(items, kind);
+      bindRowActions(kind);
+    }
+
+    searchInput.addEventListener("input", renderFiltered);
+    if (catFilter) catFilter.addEventListener("change", renderFiltered);
+    renderFiltered();
+  }
+
+  function bindRowActions(kind) {
     document.querySelectorAll('[data-act]').forEach(function (btn) {
       btn.addEventListener("click", function () {
         var act = btn.dataset.act, k = btn.dataset.kind, slug = btn.dataset.slug;
@@ -627,6 +659,14 @@
 
     var initialHtml = item.body_html || (isColumn ? legacyColumnBodyToHtml(item.body) : legacyBodyToHtml(item.body));
     currentQuill = createRichEditor(initialHtml);
+
+    var editForm = document.getElementById("edit-form");
+    if (item._isNew) {
+      editForm.title.addEventListener("input", function () {
+        if (!editForm.slug.dataset.touched) editForm.slug.value = slugifyInput(editForm.title.value);
+      });
+      editForm.slug.addEventListener("input", function () { editForm.slug.dataset.touched = "1"; });
+    }
 
     document.getElementById("cancel-btn").addEventListener("click", function () { navigate(isColumn ? "columns" : "posts"); });
     document.getElementById("preview-btn").addEventListener("click", function () {

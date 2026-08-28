@@ -163,7 +163,14 @@ def header_html(active="/"):
     links = []
     for path, label in NAV_ITEMS:
         cls = ' class="active"' if path == active else ""
-        links.append(f'<li><a href="{path}"{cls}>{label}</a></li>')
+        if path == "/categories/":
+            cat_links = "".join(f'<li><a href="/categories/{c["slug"]}/">{c["name"]}</a></li>' for c in CATEGORIES)
+            links.append(
+                f'<li class="has-dropdown"><a href="{path}"{cls}>{label}</a>'
+                f'<ul class="nav-dropdown">{cat_links}</ul></li>'
+            )
+        else:
+            links.append(f'<li><a href="{path}"{cls}>{label}</a></li>')
     return f"""<a class="skip-link" href="#main">본문 바로가기</a>
 <div id="admin-bar" class="admin-bar admin-only" hidden>
   <div class="admin-bar-inner">
@@ -299,16 +306,6 @@ def render_home():
   </div>
 </section>
 
-<section class="section">
-  <div class="wrap">
-    <div class="section-head">
-      <div><span class="section-eyebrow">대표 카테고리</span><h2>어디서부터 읽어도 좋습니다</h2></div>
-      <a class="see-all" href="/categories/">전체 카테고리 보기 →</a>
-    </div>
-    <div class="cat-strip">{cat_chips}</div>
-  </div>
-</section>
-
 <section class="section section-alt">
   <div class="wrap">
     <div class="section-head">
@@ -322,28 +319,33 @@ def render_home():
 <section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="section-eyebrow">추천 글</span><h2>입문자에게 먼저 추천하는 글</h2></div>
+      <div><span class="section-eyebrow">대표 카테고리</span><h2>어디서부터 읽어도 좋습니다</h2></div>
+      <a class="see-all" href="/categories/">전체 카테고리 보기 →</a>
     </div>
-    <div class="card-grid">{feat_html}</div>
+    <div class="cat-strip">{cat_chips}</div>
   </div>
 </section>
 
 <section class="section section-alt">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="section-eyebrow">운영 목적</span><h2>{esc(SITE['name'])}가 만들어진 이유</h2></div>
+      <div><span class="section-eyebrow">추천 글</span><h2>입문자에게 먼저 추천하는 글</h2></div>
     </div>
-    <p class="section-desc" style="max-width:70ch;">역사는 흥미롭지만, 처음 접할 때는 정보가 너무 많거나 지나치게 압축되어 있어 오히려 진입장벽처럼 느껴지곤 합니다.
-    {esc(SITE['name'])}는 연도와 사건을 나열하기보다, 왜 그런 일이 벌어졌는지 맥락을 먼저 설명하는 것을 목표로 합니다.</p>
-    <div class="principles" style="margin-top:28px;">
-      <div class="principle"><h3>맥락을 우선합니다</h3><p>사건의 결과보다 원인과 배경을 먼저 설명해 흐름이 자연스럽게 이어지도록 씁니다.</p></div>
-      <div class="principle"><h3>과장하지 않습니다</h3><p>확인되지 않은 최신 이슈나 자극적인 표현 대신, 검증 가능한 범위 안에서 담담하게 서술합니다.</p></div>
-      <div class="principle"><h3>꾸준히 점검합니다</h3><p>발행된 글도 필요하면 다시 살펴보고 보완하며, 발행일과 수정일을 함께 표시합니다.</p></div>
-    </div>
+    <div class="card-grid">{feat_html}</div>
   </div>
 </section>
 
 <section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="section-eyebrow">칼럼</span><h2>운영자 칼럼 미리 보기</h2></div>
+      <a class="see-all" href="/columns/">칼럼 전체 보기 →</a>
+    </div>
+    <div class="card-grid">{col_preview}</div>
+  </div>
+</section>
+
+<section class="section section-alt">
   <div class="wrap">
     <div class="section-head">
       <div><span class="section-eyebrow">운영자</span><h2>누가 이 글들을 쓰고 있나요</h2></div>
@@ -360,17 +362,22 @@ def render_home():
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="section-eyebrow">칼럼</span><h2>운영자 칼럼 미리 보기</h2></div>
-      <a class="see-all" href="/columns/">칼럼 전체 보기 →</a>
+      <div><span class="section-eyebrow">운영 목적</span><h2>{esc(SITE['name'])}가 만들어진 이유</h2></div>
     </div>
-    <div class="card-grid">{col_preview}</div>
+    <p class="section-desc" style="max-width:70ch;">역사는 흥미롭지만, 처음 접할 때는 정보가 너무 많거나 지나치게 압축되어 있어 오히려 진입장벽처럼 느껴지곤 합니다.
+    {esc(SITE['name'])}는 연도와 사건을 나열하기보다, 왜 그런 일이 벌어졌는지 맥락을 먼저 설명하는 것을 목표로 합니다.</p>
+    <div class="principles" style="margin-top:28px;">
+      <div class="principle"><h3>맥락을 우선합니다</h3><p>사건의 결과보다 원인과 배경을 먼저 설명해 흐름이 자연스럽게 이어지도록 씁니다.</p></div>
+      <div class="principle"><h3>과장하지 않습니다</h3><p>확인되지 않은 최신 이슈나 자극적인 표현 대신, 검증 가능한 범위 안에서 담담하게 서술합니다.</p></div>
+      <div class="principle"><h3>꾸준히 점검합니다</h3><p>발행된 글도 필요하면 다시 살펴보고 보완하며, 발행일과 수정일을 함께 표시합니다.</p></div>
+    </div>
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap" style="text-align:center;">
     <h2 style="margin-bottom:12px;">궁금한 점이나 제안이 있으신가요?</h2>
     <p class="section-desc" style="margin:0 auto 20px;">다루었으면 하는 주제, 잘못된 내용에 대한 제보 모두 이메일로 받고 있습니다.</p>

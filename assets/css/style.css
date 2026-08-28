@@ -69,6 +69,12 @@ p { margin: 0 0 1em; }
 .site-nav a { padding: 8px 14px; border-radius: 999px; font-size: 14.5px; color: var(--ink-soft); font-weight: 500; }
 .site-nav a:hover { background: var(--paper-alt); color: var(--ink); }
 .site-nav a.active { background: var(--ink); color: #fff; }
+.site-nav li.has-dropdown { position: relative; }
+.nav-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 180px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-m); box-shadow: var(--shadow-card); padding: 6px; z-index: 150; }
+.nav-dropdown li { width: 100%; }
+.nav-dropdown a { display: block; padding: 8px 12px; border-radius: var(--radius-s); font-size: 14px; }
+.site-nav li.has-dropdown:hover .nav-dropdown, .site-nav li.has-dropdown:focus-within .nav-dropdown { display: block; }
+@media (max-width: 640px) { .nav-dropdown { display: none !important; } }
 .nav-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; padding: 8px; cursor: pointer; }
 .nav-toggle span { width: 22px; height: 2px; background: var(--ink); display: block; }
 
@@ -180,7 +186,8 @@ p { margin: 0 0 1em; }
 #rich-editor-wrap .ql-editor { min-height: 280px; }
 #rich-editor-wrap .ql-editor img { max-width: 100%; }
 
-.timeline-rail { position: sticky; top: 96px; border-left: 2px solid var(--border); padding-left: 18px; }
+.timeline-rail { position: sticky; top: 96px; border-left: 2px solid var(--border); padding-left: 18px; order: 2; }
+.post-body { order: 1; }
 .timeline-rail h2 { font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--brass-dark); margin-bottom: 12px; }
 .timeline-rail ol { display: flex; flex-direction: column; gap: 9px; }
 .timeline-rail a { font-size: 13.5px; color: var(--ink-soft); display: block; position: relative; padding-left: 4px; }
@@ -232,6 +239,20 @@ input[type=text], input[type=email], input[type=password], input[type=date], tex
 textarea { resize: vertical; }
 input:focus, textarea:focus, select:focus { border-color: var(--brass); }
 .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+
+/* ---------- 관리자 글쓰기 화면 (넓은 2단 폼 + 전체폭 에디터) ---------- */
+.form-grid-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; max-width: 100%; }
+.form-grid-2 .field-full { grid-column: 1 / -1; }
+@media (max-width: 720px) { .form-grid-2 { grid-template-columns: 1fr; } }
+.editor-field { margin: 20px 0; }
+.editor-field label { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+.edit-extra { border: 1px solid var(--border); border-radius: var(--radius-m); margin: 20px 0; }
+.edit-extra summary { cursor: pointer; padding: 12px 16px; font-weight: 700; font-size: 14px; color: var(--ink-soft); list-style: none; display: flex; align-items: center; gap: 8px; }
+.edit-extra summary::before { content: "▸"; color: var(--brass-dark); transition: transform .15s; }
+.edit-extra[open] summary::before { transform: rotate(90deg); }
+.edit-extra summary::-webkit-details-marker { display: none; }
+.edit-extra .form-grid-2 { padding: 0 16px 16px; }
+.sticky-actions { position: sticky; bottom: 0; background: #fff; margin: 20px -22px -22px; padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; z-index: 5; }
 
 /* ---------- 신뢰 페이지 ---------- */
 .prose { max-width: var(--measure); }
@@ -344,7 +365,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--brass); }
   .cat-strip { grid-template-columns: repeat(3,1fr); }
   .principles { grid-template-columns: 1fr; }
   .post-layout { grid-template-columns: 1fr; }
-  .timeline-rail { position: static; border-left: none; padding-left: 0; }
+  .timeline-rail { position: static; border-left: none; padding-left: 0; order: -1; margin-bottom: 24px; padding: 16px 18px; background: var(--paper-alt); border-radius: var(--radius-m); }
   .admin-shell { grid-template-columns: 1fr; }
   .admin-sidebar { display: flex; overflow-x: auto; align-items: center; }
   .admin-nav { display: flex; gap: 6px; }
