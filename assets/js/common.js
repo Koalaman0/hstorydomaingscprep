@@ -53,6 +53,22 @@
       });
     }
 
+    // 카테고리 드롭다운: CSS :hover만 쓰면, 방금 그 링크를 클릭해서 이 페이지로
+    // 들어온 경우 마우스 커서가 그 자리에 그대로 있어서 움직이지 않아도 계속
+    // 펼쳐진 채로 보인다. mouseenter/focus 같은 "실제 이벤트"가 있을 때만
+    // 열리도록 JS로 처리해 그 문제를 없앤다.
+    document.querySelectorAll(".site-nav li.has-dropdown").forEach(function (li) {
+      var dropdown = li.querySelector(".nav-dropdown");
+      var link = li.querySelector("a");
+      if (!dropdown) return;
+      li.addEventListener("mouseenter", function () { dropdown.classList.add("is-open"); });
+      li.addEventListener("mouseleave", function () { dropdown.classList.remove("is-open"); });
+      if (link) link.addEventListener("focus", function () { dropdown.classList.add("is-open"); });
+      li.addEventListener("focusout", function (e) {
+        if (!li.contains(e.relatedTarget)) dropdown.classList.remove("is-open");
+      });
+    });
+
     var logoutBtn = document.getElementById("admin-logout");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
