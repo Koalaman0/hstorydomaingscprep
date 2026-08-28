@@ -23,6 +23,8 @@ import json
 import os
 import sys
 
+from sanitize_html import sanitize_html
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT_PATH = os.path.join(ROOT, "data", "content.json")
 
@@ -104,7 +106,7 @@ def convert_post(raw, existing_by_slug):
         "status": raw.get("status", existing.get("status", "published")),
         "toc": [h for h, _ in body],
         "body": body,
-        "body_html": raw.get("body_html", existing.get("body_html", "")),
+        "body_html": sanitize_html(raw.get("body_html", existing.get("body_html", ""))),
         "key_points": key_points,
         "mistakes": mistakes,
         "checklist": checklist,
@@ -133,7 +135,7 @@ def convert_column(raw, existing_by_slug):
         "featured": bool(raw.get("featured", existing.get("featured", False))),
         "status": raw.get("status", existing.get("status", "published")),
         "body": body,
-        "body_html": raw.get("body_html", existing.get("body_html", "")),
+        "body_html": sanitize_html(raw.get("body_html", existing.get("body_html", ""))),
     }
 
 

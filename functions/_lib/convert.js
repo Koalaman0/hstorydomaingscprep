@@ -2,6 +2,8 @@
 // 관리자 화면(admin.js)의 폼 형식(bodyText/faqText/keyPointsText 등)을
 // 사이트 렌더링에 쓰이는 구조(body 섹션 목록/faq 목록 등)로 변환합니다.
 
+import { sanitizeHtml } from "./sanitize.js";
+
 function parseBodyMarkdown(text) {
   text = (text || "").replace(/\r\n/g, "\n").trim();
   if (!text) return [["본문", [""]]];
@@ -68,7 +70,7 @@ export function convertPost(raw, existingBySlug) {
   const mistakes = "mistakesText" in raw ? parseLines(raw.mistakesText) : (raw.mistakes || existing.mistakes || []);
   const checklist = "checklistText" in raw ? parseLines(raw.checklistText) : (raw.checklist || existing.checklist || []);
 
-  const bodyHtml = raw.body_html ?? existing.body_html ?? "";
+  const bodyHtml = sanitizeHtml(raw.body_html ?? existing.body_html ?? "");
 
   return {
     slug,
@@ -103,7 +105,7 @@ export function convertColumn(raw, existingBySlug) {
     body = raw.body || existing.body || [""];
   }
 
-  const bodyHtml = raw.body_html ?? existing.body_html ?? "";
+  const bodyHtml = sanitizeHtml(raw.body_html ?? existing.body_html ?? "");
 
   return {
     slug,
