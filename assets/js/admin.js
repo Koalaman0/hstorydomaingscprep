@@ -468,34 +468,66 @@
       input.addEventListener("change", function () {
         var file = input.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { alert("이미지는 5MB 이하만 업로드할 수 있습니다."); return; }
         var range = quill.getSelection(true);
-        var reader = new FileReader();
-        reader.onload = function () {
-          var base64 = String(reader.result).split(",")[1];
-          fetch("/api/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "same-origin",
-            body: JSON.stringify({ filename: file.name, mimeType: file.type, contentBase64: base64 }),
-          })
-            .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-            .then(function (result) {
-              if (result.ok) {
-                quill.insertEmbed(range.index, "image", result.data.url, "user");
-                quill.setSelection(range.index + 1);
-              } else {
-                alert("이미지 업로드 실패: " + (result.data.error || "알 수 없는 오류"));
-              }
+        var altText = window.prompt("이미지 설명(대체 텍스트)을 입력해 주세요. 검색 노출과 접근성에 도움이 됩니다.\n(비워두고 확인을 눌러도 됩니다)", "") || "";
+
+        resizeImageFile(file, 1600).then(function (uploadFile) {
+          if (uploadFile.size > 5 * 1024 * 1024) { alert("이미지는 5MB 이하만 업로드할 수 있습니다."); return; }
+          var reader = new FileReader();
+          reader.onload = function () {
+            var base64 = String(reader.result).split(",")[1];
+            fetch("/api/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify({ filename: uploadFile.name, mimeType: uploadFile.type, contentBase64: base64 }),
             })
-            .catch(function () { alert("이미지 업로드 중 문제가 발생했습니다."); });
-        };
-        reader.readAsDataURL(file);
+              .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+              .then(function (result) {
+                if (result.ok) {
+                  quill.insertEmbed(range.index, "image", result.data.url, "user");
+                  quill.setSelection(range.index + 1);
+                  var leaf = quill.getLeaf(range.index);
+                  if (leaf && leaf[0] && leaf[0].domNode) leaf[0].domNode.setAttribute("alt", altText);
+                } else {
+                  alert("이미지 업로드 실패: " + (result.data.error || "알 수 없는 오류"));
+                }
+              })
+              .catch(function () { alert("이미지 업로드 중 문제가 발생했습니다."); });
+          };
+          reader.readAsDataURL(uploadFile);
+        });
       });
       input.click();
     });
 
     return quill;
+  }
+
+  // 업로드 전 브라우저에서 큰 이미지를 적당한 크기로 줄인다 (페이지 로딩 속도용).
+  // GIF는 캔버스로 다시 인코딩하면 애니메이션이 깨지므로 원본 그대로 둔다.
+  function resizeImageFile(file, maxDimension) {
+    if (file.type === "image/gif") return Promise.resolve(file);
+    return new Promise(function (resolve) {
+      var objectUrl = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(objectUrl);
+        var scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+        if (scale >= 1) { resolve(file); return; }
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          if (!blob) { resolve(file); return; }
+          resolve(new File([blob], file.name, { type: file.type }));
+        }, file.type, 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
+    });
   }
 
   function openEdit(kind, slug) {
