@@ -63,9 +63,18 @@
       var link = li.querySelector("a");
       if (!dropdown) return;
       var pointerInside = false;
-      li.addEventListener("mouseenter", function () { pointerInside = true; });
-      li.addEventListener("mousemove", function () {
-        if (pointerInside) dropdown.classList.add("is-open");
+      var startX = null;
+      var startY = null;
+      var MOVE_THRESHOLD = 6; // 트랙패드의 미세한 떨림까지 걸러내기 위한 최소 이동 거리(px)
+      li.addEventListener("mouseenter", function (e) {
+        pointerInside = true;
+        startX = e.clientX;
+        startY = e.clientY;
+      });
+      li.addEventListener("mousemove", function (e) {
+        if (!pointerInside) return;
+        var dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+        if (dist > MOVE_THRESHOLD) dropdown.classList.add("is-open");
       });
       li.addEventListener("mouseleave", function () {
         pointerInside = false;
