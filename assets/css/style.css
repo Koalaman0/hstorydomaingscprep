@@ -190,12 +190,16 @@ p { margin: 0 0 1em; }
 .post-body strong { color: var(--ink); }
 .post-body a { color: var(--brass-dark); text-decoration: underline; text-underline-offset: 2px; }
 .post-body blockquote { margin: 20px 0; padding: 12px 20px; border-left: 3px solid var(--brass); background: var(--paper-alt); color: var(--ink-soft); font-style: italic; }
+.post-body pre, .column-body pre { font-family: var(--font-mono); font-size: 13.5px; background: var(--ink); color: #EDEBE3; padding: 14px 16px; border-radius: var(--radius-s); margin: 20px 0; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+.post-body sub, .post-body sup, .column-body sub, .column-body sup { font-size: 75%; }
 
 /* ---------- 관리자 리치 텍스트 에디터(Quill) ---------- */
 #rich-editor-wrap .ql-container { border-bottom-left-radius: var(--radius-s); border-bottom-right-radius: var(--radius-s); font-family: var(--font-body); font-size: 15px; }
-#rich-editor-wrap .ql-toolbar { border-top-left-radius: var(--radius-s); border-top-right-radius: var(--radius-s); background: #fff; }
+#rich-editor-wrap .ql-toolbar { border-top-left-radius: var(--radius-s); border-top-right-radius: var(--radius-s); background: #fff; position: sticky; top: 0; z-index: 20; }
 #rich-editor-wrap .ql-editor { min-height: 280px; }
 #rich-editor-wrap .ql-editor img { max-width: 100%; }
+#rich-editor-wrap .ql-editor pre.ql-syntax, #rich-editor-wrap .ql-editor pre { font-family: var(--font-mono); font-size: 13.5px; background: var(--ink); color: #EDEBE3; padding: 14px 16px; border-radius: var(--radius-s); overflow-x: auto; }
+#rich-editor-wrap .ql-picker.ql-font .ql-picker-label, #rich-editor-wrap .ql-picker.ql-font .ql-picker-options { width: 130px; }
 
 .timeline-rail { position: sticky; top: 96px; border-left: 2px solid var(--border); padding-left: 18px; order: 2; }
 .post-body { order: 1; }

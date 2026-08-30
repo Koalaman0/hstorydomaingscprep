@@ -526,16 +526,65 @@
   // ---------------------------------------------------------------
   var currentQuill = null;
 
+  // 폰트 선택지: 값 자체가 저장되는 CSS font-family 문자열이라(클래스 대신 style로 저장),
+  // sanitize.js의 화이트리스트만 통과하면 저장 후에도 그대로 살아남는다.
+  var FONT_CHOICES = [
+    "Noto Sans KR, sans-serif",
+    "Noto Serif KR, serif",
+    "Nanum Gothic, sans-serif",
+    "Nanum Myeongjo, serif",
+    "Gothic A1, sans-serif",
+    "Nanum Pen Script, cursive",
+    "Gaegu, cursive",
+    "Black Han Sans, sans-serif",
+    "IBM Plex Mono, monospace",
+  ];
+  var FONT_LABELS = {
+    "Noto Sans KR, sans-serif": "노토 산스",
+    "Noto Serif KR, serif": "노토 명조",
+    "Nanum Gothic, sans-serif": "나눔고딕",
+    "Nanum Myeongjo, serif": "나눔명조",
+    "Gothic A1, sans-serif": "고딕 A1",
+    "Nanum Pen Script, cursive": "나눔손글씨",
+    "Gaegu, cursive": "개구쟁이",
+    "Black Han Sans, sans-serif": "블랙한산스",
+    "IBM Plex Mono, monospace": "고정폭",
+  };
+
   function ensureQuillFormatsRegistered() {
     if (window.__hnQuillFormatsRegistered) return;
     window.__hnQuillFormatsRegistered = true;
-    ["size", "color", "background", "align"].forEach(function (name) {
+    ["size", "color", "background", "align", "font"].forEach(function (name) {
       try {
         var Attr = Quill.import("attributors/style/" + name);
         if (name === "size") Attr.whitelist = ["14px", "16px", "20px", "24px", "32px"];
+        if (name === "font") Attr.whitelist = FONT_CHOICES;
         Quill.register(Attr, true);
       } catch (e) { /* 버전에 따라 없을 수 있어 무시 */ }
     });
+    injectFontPickerLabels();
+  }
+
+  // Quill 폰트 드롭다운은 기본적으로 값(=font-family 문자열)을 그대로 보여주므로,
+  // 한글 이름 + 실제 폰트로 미리보기가 되도록 스타일을 동적으로 주입한다.
+  function injectFontPickerLabels() {
+    var css = FONT_CHOICES.map(function (f) {
+      var esc = f.replace(/"/g, '\\"');
+      return (
+        '#rich-editor-wrap .ql-picker.ql-font .ql-picker-item[data-value="' + esc + '"]::before,\n' +
+        '#rich-editor-wrap .ql-picker.ql-font .ql-picker-label[data-value="' + esc + '"]::before {\n' +
+        '  content: "' + (FONT_LABELS[f] || f) + '";\n' +
+        '  font-family: ' + f + ';\n' +
+        '}\n'
+      );
+    }).join("") +
+      '#rich-editor-wrap .ql-picker.ql-font .ql-picker-item:not([data-value])::before,\n' +
+      '#rich-editor-wrap .ql-picker.ql-font .ql-picker-label:not([data-value])::before {\n' +
+      '  content: "기본 서체";\n' +
+      '}\n';
+    var style = document.createElement("style");
+    style.textContent = css;
+    document.head.appendChild(style);
   }
 
   function createRichEditor(initialHtml) {
@@ -546,11 +595,13 @@
         toolbar: [
           [{ header: [2, 3, false] }],
           ["bold", "italic", "underline", "strike"],
+          [{ font: [false].concat(FONT_CHOICES) }],
           [{ size: ["14px", false, "20px", "24px", "32px"] }],
           [{ color: [] }, { background: [] }],
           [{ align: [] }],
+          [{ script: "sub" }, { script: "super" }],
           [{ list: "ordered" }, { list: "bullet" }],
-          ["blockquote", "link", "image"],
+          ["blockquote", "code-block", "link", "image"],
           ["clean"],
         ],
       },

@@ -6,6 +6,7 @@
 const ALLOWED_TAGS = new Set([
   "h2", "h3", "p", "strong", "b", "em", "i", "u", "s",
   "a", "img", "ul", "ol", "li", "blockquote", "br", "span",
+  "sub", "sup", "pre", "code",
 ]);
 
 const ALLOWED_ATTRS = {
@@ -39,7 +40,7 @@ function isSafeStyle(value) {
     const idx = decl.indexOf(":");
     if (idx === -1) return false;
     const prop = decl.slice(0, idx).trim().toLowerCase();
-    if (!["color", "background-color", "font-size", "text-align"].includes(prop)) return false;
+    if (!["color", "background-color", "font-size", "text-align", "font-family"].includes(prop)) return false;
   }
   return true;
 }

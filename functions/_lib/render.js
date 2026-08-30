@@ -6,7 +6,7 @@
 
 // CSS/JS를 고칠 때마다 이 값을 바꿔주면, 브라우저가 캐시해둔 옛날 파일 대신
 // 새 파일을 받아간다 (안 그러면 배포해도 방문자 브라우저에는 옛날 버전이 계속 보일 수 있음).
-const ASSET_VERSION = "20260830-3";
+const ASSET_VERSION = "20260830-4";
 
 function esc(s) {
   return String(s ?? "")
@@ -119,7 +119,7 @@ function head(ctx, title, description, canonicalPath, ogType = "website", jsonLd
 <meta name="twitter:description" content="${esc(description)}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css?v=${ASSET_VERSION}">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4813061242876854"
      crossorigin="anonymous"></script>
