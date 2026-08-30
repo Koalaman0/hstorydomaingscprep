@@ -6,7 +6,7 @@
 
 // CSS/JS를 고칠 때마다 이 값을 바꿔주면, 브라우저가 캐시해둔 옛날 파일 대신
 // 새 파일을 받아간다 (안 그러면 배포해도 방문자 브라우저에는 옛날 버전이 계속 보일 수 있음).
-const ASSET_VERSION = "20260830-5";
+const ASSET_VERSION = "20260830-6";
 
 function esc(s) {
   return String(s ?? "")

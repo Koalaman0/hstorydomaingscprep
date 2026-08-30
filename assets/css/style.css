@@ -239,10 +239,21 @@ p { margin: 0 0 1em; }
 .related-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 18px; }
 
 /* ---------- 칼럼 스타일 (일반 글과 시각적 구분) ---------- */
-.column-header { background: var(--ink); color: var(--paper); }
+.column-header {
+  background: linear-gradient(150deg, #232B3B 0%, var(--ink) 65%);
+  color: var(--paper);
+  border-bottom: none;
+  border-radius: var(--radius-l);
+  margin: 24px auto 36px;
+  padding: 40px 44px 32px;
+  box-shadow: var(--shadow-card);
+}
+.column-header .tag-column { background: rgba(255,255,255,0.14); color: var(--brass-light); border-color: rgba(255,255,255,0.22); }
+.column-header h1 { color: #fff; }
 .column-header .post-subtitle { color: #D8DEE9; }
-.column-header .post-meta { color: #B7C0D1; }
+.column-header .post-meta { color: #B7C0D1; margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.14); }
 .column-header .post-meta strong { color: #EADFC7; }
+@media (max-width: 640px) { .column-header { padding: 30px 22px 26px; border-radius: var(--radius-m); } }
 .column-body blockquote { border-left: 3px solid var(--accent-column); margin: 24px 0; padding: 4px 0 4px 18px; font-family: var(--font-display); font-size: 18px; color: var(--ink); }
 
 /* ---------- 폼 (문의/관리자 공용) ---------- */
