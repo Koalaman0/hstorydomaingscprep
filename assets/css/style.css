@@ -69,11 +69,6 @@ p { margin: 0 0 1em; }
 .site-nav a { padding: 8px 14px; border-radius: 999px; font-size: 14.5px; color: var(--ink-soft); font-weight: 500; }
 .site-nav a:hover { background: var(--paper-alt); color: var(--ink); }
 .site-nav a.active { background: var(--ink); color: #fff; }
-.site-nav li.has-dropdown { position: relative; }
-.nav-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 180px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-m); box-shadow: var(--shadow-card); padding: 6px; z-index: 150; }
-.nav-dropdown li { width: 100%; }
-.nav-dropdown a { display: block; padding: 8px 12px; border-radius: var(--radius-s); font-size: 14px; }
-.nav-dropdown.is-open { display: block; }
 @media (max-width: 640px) { .nav-dropdown { display: none !important; } }
 .nav-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; padding: 8px; cursor: pointer; }
 .nav-toggle span { width: 22px; height: 2px; background: var(--ink); display: block; }
