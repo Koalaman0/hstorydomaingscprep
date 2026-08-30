@@ -1,51 +1,35 @@
 /*
  * 히스토리노트 관리자(admin) 스크립트
  * 로그인 여부는 서버(/api/session, HttpOnly 쿠키 기반)로 확인합니다.
- * 편집 중인 내용은 이 브라우저의 localStorage에 임시로 보관되며,
- * "지금 사이트에 게시" 버튼을 누르면 /api/content로 전송되어
- * 저장소의 data/content.json에 커밋되고 사이트가 자동으로 재배포됩니다.
+ * "저장"을 누르면 그 즉시 /api/posts, /api/columns, /api/categories, /api/config로
+ * 전송되어 Cloudflare D1에 바로 반영됩니다 — 커밋/재배포를 기다릴 필요가 없습니다.
+ * 상태를 "초안"으로 두면 저장은 되지만 공개 페이지에는 나타나지 않고,
+ * "발행"으로 바꿔 저장하는 순간 실제 사이트에 나타납니다.
  */
 (function () {
-  var LS = {
-    posts: "hn_posts",
-    columns: "hn_columns",
-    categories: "hn_categories",
-    config: "hn_site_config",
-  };
+  var state = { view: "dashboard", data: { config: {}, categories: [], posts: [], columns: [] } };
 
-  // ---------------------------------------------------------------
-  // 저장소 헬퍼
-  // ---------------------------------------------------------------
-  function loadJSON(key, fallback) {
-    try {
-      var raw = window.localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (e) {
-      return fallback;
-    }
-  }
-  function saveJSON(key, val) {
-    window.localStorage.setItem(key, JSON.stringify(val));
-  }
-  function seedIfEmpty() {
-    if (!window.localStorage.getItem(LS.posts) && window.HN_SEED) {
-      saveJSON(LS.posts, window.HN_SEED.posts || []);
-    }
-    if (!window.localStorage.getItem(LS.columns) && window.HN_SEED) {
-      saveJSON(LS.columns, window.HN_SEED.columns || []);
-    }
-    if (!window.localStorage.getItem(LS.categories) && window.HN_SEED) {
-      saveJSON(LS.categories, window.HN_SEED.categories || []);
-    }
-    if (!window.localStorage.getItem(LS.config) && window.HN_SEED) {
-      saveJSON(LS.config, window.HN_SEED.config || {});
-    }
-  }
+  function getPosts() { return state.data.posts; }
+  function getColumns() { return state.data.columns; }
+  function getCategories() { return state.data.categories; }
+  function getConfig() { return state.data.config; }
 
-  function getPosts() { return loadJSON(LS.posts, []); }
-  function getColumns() { return loadJSON(LS.columns, []); }
-  function getCategories() { return loadJSON(LS.categories, []); }
-  function getConfig() { return loadJSON(LS.config, {}); }
+  function fetchData() {
+    return fetch("/api/data", { credentials: "same-origin" })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+      .then(function (result) {
+        if (result.ok) {
+          state.data = {
+            config: result.data.config || {},
+            categories: result.data.categories || [],
+            posts: result.data.posts || [],
+            columns: result.data.columns || [],
+          };
+        }
+        return result.ok;
+      })
+      .catch(function () { return false; });
+  }
 
   function slugifyInput(s) {
     return (s || "")
@@ -119,7 +103,7 @@
   // ---------------------------------------------------------------
   function renderList(items, kind) {
     var isColumn = kind === "column";
-    var rows = items.map(function (item, idx) {
+    var rows = items.map(function (item) {
       return '<tr>' +
         '<td><div>' + esc(item.title) + (item.featured ? ' <span class="tag tag-featured" style="margin-left:6px;">추천</span>' : '') + '</div>' +
         '<div style="font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);">' + esc(item.slug) + '</div></td>' +
@@ -198,7 +182,7 @@
       '    <button type="submit" class="btn btn-primary">저장</button>' +
       '    <button type="button" id="preview-btn" class="btn btn-outline">미리보기</button>' +
       '    <button type="button" id="cancel-btn" class="btn btn-outline">목록으로</button>' +
-      '    <span style="font-size:12.5px;color:var(--ink-faint);">저장은 이 브라우저에만 임시 보관됩니다 — "지금 사이트에 게시"를 눌러야 반영돼요.</span>' +
+      '    <span id="save-status" style="font-size:12.5px;color:var(--ink-faint);">"발행" 상태로 저장하면 바로 사이트에 반영됩니다.</span>' +
       '  </div>' +
       (item._isNew ? '' : '  <input type="hidden" name="__origSlug" value="' + esc(item.slug) + '">') +
       '</form>'
@@ -252,9 +236,10 @@
       '    <div class="field"><label>슬러그 <span class="hint">(URL에 쓰이는 짧은 영문 주소)</span></label><input type="text" name="slug" value="' + esc(cat.slug) + '" required></div>' +
       '    <div class="field"><label>소개 문구</label><textarea name="desc" rows="2">' + esc(cat.desc) + '</textarea></div>' +
       '  </div>' +
-      '  <div style="display:flex;gap:10px;margin-top:20px;">' +
+      '  <div style="display:flex;gap:10px;margin-top:20px;align-items:center;">' +
       '    <button type="submit" class="btn btn-primary">저장</button>' +
       '    <button type="button" id="cat-cancel-btn" class="btn btn-outline">목록으로</button>' +
+      '    <span id="cat-save-status" style="font-size:12.5px;color:var(--ink-faint);"></span>' +
       '  </div>' +
       (cat._isNew ? '' : '  <input type="hidden" name="__origSlug" value="' + esc(cat.slug) + '">') +
       '</form>'
@@ -282,24 +267,24 @@
     document.getElementById("cat-edit-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var f = e.target;
+      var statusEl = document.getElementById("cat-save-status");
       var newSlug = slugifyInput(f.slug.value) || slugifyInput(f.name.value);
       var origSlug = f.__origSlug ? f.__origSlug.value : null;
-      var record = { slug: newSlug, name: f.name.value.trim(), desc: f.desc.value.trim() };
-      var list = getCategories();
-      var idx = list.findIndex(function (c) { return c.slug === (origSlug || "__none__"); });
-      if (idx > -1) list[idx] = record; else list.push(record);
-      saveJSON(LS.categories, list);
-      navigate("categories");
+      var payload = { slug: newSlug, name: f.name.value.trim(), desc: f.desc.value.trim(), __origSlug: origSlug };
+      statusEl.textContent = "저장 중...";
+      apiCall("/api/categories", "POST", payload).then(function (result) {
+        if (result.ok) { fetchData().then(function () { navigate("categories"); }); }
+        else { statusEl.textContent = "저장 실패: " + (result.error || "알 수 없는 오류"); }
+      });
     });
   }
 
   function deleteCategory(slug) {
-    var inUse = getPosts().some(function (p) { return p.category === slug; });
-    if (inUse) { alert("이 카테고리에 연결된 글이 있어 삭제할 수 없습니다. 먼저 해당 글의 카테고리를 변경해 주세요."); return; }
     if (!window.confirm("카테고리를 삭제하시겠습니까?")) return;
-    var list = getCategories().filter(function (c) { return c.slug !== slug; });
-    saveJSON(LS.categories, list);
-    navigate("categories");
+    apiCall("/api/categories", "DELETE", { slug: slug }).then(function (result) {
+      if (result.ok) fetchData().then(function () { navigate("categories"); });
+      else alert("삭제 실패: " + (result.error || "알 수 없는 오류"));
+    });
   }
 
   function renderSettings() {
@@ -317,33 +302,36 @@
       '    <div class="field"><label>기본 도메인</label><input type="text" name="url" value="' + esc(c.url) + '"></div>' +
       '    <div class="field"><label>히어로 배경 이미지 URL <span class="hint">(비워두면 기본 배경을 사용합니다)</span></label><input type="text" name="hero_image_url" value="' + esc(c.hero_image_url) + '" placeholder="https://..."></div>' +
       '  </div>' +
-      '  <button type="submit" class="btn btn-primary" style="margin-top:18px;">설정 저장 (임시 보관)</button>' +
-      '  <p style="font-size:12.5px;color:var(--ink-faint);margin-top:14px;">이 화면에서 저장한 값은 이 브라우저에만 임시로 남습니다. 아래 "지금 사이트에 게시"를 눌러야 실제 사이트에 반영됩니다.</p>' +
+      '  <div style="display:flex;gap:10px;align-items:center;margin-top:18px;">' +
+      '    <button type="submit" class="btn btn-primary">설정 저장</button>' +
+      '    <span id="settings-status" style="font-size:12.5px;color:var(--ink-faint);">저장하면 바로 사이트에 반영됩니다.</span>' +
+      '  </div>' +
       '</form>' +
       '<div class="admin-card">' +
-      '  <h2 style="margin-top:0;">사이트에 게시</h2>' +
-      '  <p style="color:var(--ink-faint);font-size:13.5px;">현재 이 브라우저에 임시 보관된 글/칼럼/카테고리/설정을 실제 사이트에 반영합니다. 저장소에 자동으로 커밋되고, 보통 1분 내로 배포가 완료됩니다.</p>' +
-      '  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">' +
-      '    <button type="button" id="publish-btn" class="btn btn-brass">지금 사이트에 게시</button>' +
-      '    <span id="publish-status" style="font-size:13px;color:var(--ink-faint);"></span>' +
-      '  </div>' +
-      '</div>' +
-      '<div class="admin-card">' +
-      '  <h2 style="margin-top:0;">데이터 내보내기 / 가져오기 (백업용)</h2>' +
-      '  <p style="color:var(--ink-faint);font-size:13.5px;">현재 글/칼럼/카테고리/설정 데이터를 JSON 파일로 내보내거나, 이전에 내보낸 JSON을 다시 불러올 수 있습니다.</p>' +
-      '  <div style="display:flex;gap:10px;flex-wrap:wrap;">' +
-      '    <button type="button" id="export-btn" class="btn btn-outline btn-sm">JSON export</button>' +
-      '    <label class="btn btn-outline btn-sm" style="cursor:pointer;">JSON import<input type="file" id="import-input" accept="application/json" style="display:none;"></label>' +
-      '    <button type="button" id="reset-btn" class="btn btn-danger btn-sm">기본 데이터로 초기화</button>' +
-      '  </div>' +
+      '  <h2 style="margin-top:0;">데이터 내보내기 (백업용)</h2>' +
+      '  <p style="color:var(--ink-faint);font-size:13.5px;">현재 글/칼럼/카테고리/설정 데이터를 JSON 파일로 내려받아 백업해 둘 수 있습니다.</p>' +
+      '  <button type="button" id="export-btn" class="btn btn-outline btn-sm">JSON 내보내기</button>' +
       '</div>'
     );
   }
 
   // ---------------------------------------------------------------
+  // 서버 API 호출 공통 헬퍼
+  // ---------------------------------------------------------------
+  function apiCall(path, method, payload) {
+    return fetch(path, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
+    })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, error: data.error, data: data }; }); })
+      .catch(function () { return { ok: false, error: "요청 중 문제가 발생했습니다." }; });
+  }
+
+  // ---------------------------------------------------------------
   // 메인 렌더 / 라우팅
   // ---------------------------------------------------------------
-  var state = { view: "dashboard", editKind: null, editSlug: null };
 
   function render() {
     var root = document.getElementById("admin-root");
@@ -351,17 +339,16 @@
     fetch("/api/session", { credentials: "same-origin" })
       .then(function (res) { return res.ok ? res.json() : { admin: false }; })
       .catch(function () { return { admin: false }; })
-      .then(function (data) {
-        if (!data.admin) {
+      .then(function (sessionData) {
+        if (!sessionData.admin) {
           window.location.href = "/login/";
           return;
         }
-        renderDashboardShell(root);
+        fetchData().then(function () { renderDashboardShell(root); });
       });
   }
 
   function renderDashboardShell(root) {
-    seedIfEmpty();
     var cfg = getConfig();
     root.innerHTML =
       '<div class="admin-shell">' +
@@ -469,8 +456,7 @@
     }).join("");
     body.innerHTML =
       '<div class="admin-card">' +
-      '  <p style="color:var(--ink-faint);font-size:13.5px;margin-top:0;">"미사용 추정"은 현재 이 브라우저에 있는 글/칼럼 본문을 기준으로 판단한 것입니다. ' +
-      '아직 "지금 사이트에 게시"를 하지 않은 초안은 반영되지 않을 수 있으니, 삭제 전에 한 번 더 확인해 주세요.</p>' +
+      '  <p style="color:var(--ink-faint);font-size:13.5px;margin-top:0;">"미사용 추정"은 현재 저장된 모든 글/칼럼(초안 포함)의 본문을 기준으로 판단한 것입니다.</p>' +
       '  <div class="media-grid">' + cards + '</div>' +
       '</div>';
 
@@ -479,18 +465,10 @@
         var item = items[Number(btn.dataset.mediaDelete)];
         if (!window.confirm('"' + item.name + '" 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
         btn.disabled = true;
-        fetch("/api/media", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({ path: item.path, sha: item.sha }),
-        })
-          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-          .then(function (result) {
-            if (result.ok) navigate("media");
-            else { alert("삭제 실패: " + (result.data.error || "알 수 없는 오류")); btn.disabled = false; }
-          })
-          .catch(function () { alert("삭제 요청 중 문제가 발생했습니다."); btn.disabled = false; });
+        apiCall("/api/media", "DELETE", { path: item.path }).then(function (result) {
+          if (result.ok) navigate("media");
+          else { alert("삭제 실패: " + (result.error || "알 수 없는 오류")); btn.disabled = false; }
+        });
       });
     });
   }
@@ -594,13 +572,7 @@
           var reader = new FileReader();
           reader.onload = function () {
             var base64 = String(reader.result).split(",")[1];
-            fetch("/api/upload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "same-origin",
-              body: JSON.stringify({ filename: uploadFile.name, mimeType: uploadFile.type, contentBase64: base64 }),
-            })
-              .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+            apiCall("/api/upload", "POST", { filename: uploadFile.name, mimeType: uploadFile.type, contentBase64: base64 })
               .then(function (result) {
                 if (result.ok) {
                   quill.insertEmbed(range.index, "image", result.data.url, "user");
@@ -608,10 +580,9 @@
                   var leaf = quill.getLeaf(range.index);
                   if (leaf && leaf[0] && leaf[0].domNode) leaf[0].domNode.setAttribute("alt", altText);
                 } else {
-                  alert("이미지 업로드 실패: " + (result.data.error || "알 수 없는 오류"));
+                  alert("이미지 업로드 실패: " + (result.error || "알 수 없는 오류"));
                 }
-              })
-              .catch(function () { alert("이미지 업로드 중 문제가 발생했습니다."); });
+              });
           };
           reader.readAsDataURL(uploadFile);
         });
@@ -683,11 +654,12 @@
 
   function saveItem(kind, form, original) {
     var isColumn = kind === "column";
-    var data = isColumn ? getColumns() : getPosts();
+    var statusEl = document.getElementById("save-status");
     var slug = slugifyInput(form.slug.value) || slugifyInput(form.title.value);
-    var origSlug = original && original.slug;
-    var record = {
+    var origSlug = original && !original._isNew ? original.slug : null;
+    var payload = {
       slug: slug,
+      __origSlug: origSlug,
       title: form.title.value.trim(),
       summary: form.summary.value.trim(),
       body_html: form.body_html.value,
@@ -696,29 +668,32 @@
       modified: form.modified.value || todayStr(),
     };
     if (!isColumn) {
-      record.subtitle = form.subtitle.value.trim();
-      record.category = form.category.value;
-      record.faqText = form.faqText.value;
-      record.keyPointsText = form.keyPointsText.value;
-      record.mistakesText = form.mistakesText.value;
-      record.checklistText = form.checklistText.value;
-      record.related = form.related.value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
-      record.featured = form.featured.checked;
+      payload.subtitle = form.subtitle.value.trim();
+      payload.category = form.category.value;
+      payload.faqText = form.faqText.value;
+      payload.keyPointsText = form.keyPointsText.value;
+      payload.mistakesText = form.mistakesText.value;
+      payload.checklistText = form.checklistText.value;
+      payload.related = form.related.value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+      payload.featured = form.featured.checked;
     }
-    var existingIdx = data.findIndex(function (d) { return d.slug === (origSlug || "__none__"); });
-    if (existingIdx > -1) data[existingIdx] = Object.assign({}, data[existingIdx], record);
-    else data.push(record);
-    saveJSON(isColumn ? LS.columns : LS.posts, data);
-    navigate(isColumn ? "columns" : "posts");
+    statusEl.textContent = "저장 중...";
+    apiCall(isColumn ? "/api/columns" : "/api/posts", "POST", payload).then(function (result) {
+      if (result.ok) {
+        fetchData().then(function () { navigate(isColumn ? "columns" : "posts"); });
+      } else {
+        statusEl.textContent = "저장 실패: " + (result.error || "알 수 없는 오류");
+      }
+    });
   }
 
   function deleteItem(kind, slug) {
     if (!window.confirm("정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
     var isColumn = kind === "column";
-    var key = isColumn ? LS.columns : LS.posts;
-    var data = loadJSON(key, []).filter(function (d) { return d.slug !== slug; });
-    saveJSON(key, data);
-    navigate(isColumn ? "columns" : "posts");
+    apiCall(isColumn ? "/api/columns" : "/api/posts", "DELETE", { slug: slug }).then(function (result) {
+      if (result.ok) fetchData().then(function () { navigate(isColumn ? "columns" : "posts"); });
+      else alert("삭제 실패: " + (result.error || "알 수 없는 오류"));
+    });
   }
 
   function previewItem(kind, slug) {
@@ -734,40 +709,22 @@
     document.getElementById("settings-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var f = e.target;
+      var statusEl = document.getElementById("settings-status");
       var cfg = {
         name: f.name.value, tagline: f.tagline.value, owner_name: f.owner_name.value,
         owner_bio: f.owner_bio.value, email: f.email.value, main_color: f.main_color.value,
         sub_color: f.sub_color.value, url: f.url.value, hero_image_url: f.hero_image_url.value,
       };
-      saveJSON(LS.config, cfg);
-      alert("이 브라우저에 임시 저장되었습니다. 실제 사이트에 반영하려면 '지금 사이트에 게시'를 눌러주세요.");
-      navigate("settings");
-    });
-    document.getElementById("publish-btn").addEventListener("click", function () {
-      var statusEl = document.getElementById("publish-status");
-      var btn = document.getElementById("publish-btn");
-      var payload = { posts: getPosts(), columns: getColumns(), categories: getCategories(), config: getConfig() };
-      btn.disabled = true;
-      statusEl.textContent = "게시 중...";
-      fetch("/api/content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify(payload),
-      })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
-        .then(function (result) {
-          btn.disabled = false;
-          if (result.ok) {
-            statusEl.textContent = result.data.message || "게시되었습니다.";
-          } else {
-            statusEl.textContent = "게시 실패: " + (result.data.error || "알 수 없는 오류");
-          }
-        })
-        .catch(function () {
-          btn.disabled = false;
-          statusEl.textContent = "게시 요청 중 문제가 발생했습니다.";
-        });
+      statusEl.textContent = "저장 중...";
+      apiCall("/api/config", "POST", cfg).then(function (result) {
+        if (result.ok) {
+          fetchData().then(function () {
+            statusEl.textContent = "저장되었습니다. 사이트에 바로 반영됩니다.";
+          });
+        } else {
+          statusEl.textContent = "저장 실패: " + (result.error || "알 수 없는 오류");
+        }
+      });
     });
     document.getElementById("export-btn").addEventListener("click", function () {
       var payload = { posts: getPosts(), columns: getColumns(), categories: getCategories(), config: getConfig() };
@@ -776,31 +733,6 @@
       a.href = URL.createObjectURL(blob);
       a.download = "historynote-data-export.json";
       a.click();
-    });
-    document.getElementById("import-input").addEventListener("change", function (e) {
-      var file = e.target.files[0];
-      if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        try {
-          var parsed = JSON.parse(reader.result);
-          if (parsed.posts) saveJSON(LS.posts, parsed.posts);
-          if (parsed.columns) saveJSON(LS.columns, parsed.columns);
-          if (parsed.categories) saveJSON(LS.categories, parsed.categories);
-          if (parsed.config) saveJSON(LS.config, parsed.config);
-          alert("가져오기가 완료되었습니다.");
-          navigate("dashboard");
-        } catch (err) {
-          alert("JSON 파일을 읽는 중 문제가 발생했습니다. 형식을 확인해 주세요.");
-        }
-      };
-      reader.readAsText(file);
-    });
-    document.getElementById("reset-btn").addEventListener("click", function () {
-      if (!window.confirm("현재 브라우저에 저장된 편집 내용을 모두 지우고 기본 데이터로 되돌립니다. 계속할까요?")) return;
-      Object.values(LS).forEach(function (k) { window.localStorage.removeItem(k); });
-      seedIfEmpty();
-      navigate("dashboard");
     });
   }
 

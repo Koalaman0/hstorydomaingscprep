@@ -1,5 +1,4 @@
 import { isAuthedRequest } from "../_lib/auth.js";
-import { putBinaryFile } from "../_lib/github.js";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME = {
@@ -27,10 +26,17 @@ function sanitizeBaseName(name) {
     .slice(0, 40) || "image";
 }
 
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
 export async function onRequestPost({ request, env }) {
   if (!(await isAuthedRequest(request, env))) return unauthorized();
-  if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
-    return new Response(JSON.stringify({ error: "서버에 GitHub 연동 설정(GITHUB_TOKEN/GITHUB_OWNER/GITHUB_REPO)이 없습니다." }), {
+  if (!env.MEDIA) {
+    return new Response(JSON.stringify({ error: "서버에 이미지 저장소(R2) 설정이 없습니다." }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
@@ -53,22 +59,22 @@ export async function onRequestPost({ request, env }) {
   if (!base64) {
     return new Response(JSON.stringify({ error: "이미지 데이터가 비어 있습니다." }), { status: 400 });
   }
-  // base64 텍스트 길이로 대략적인 바이트 크기를 추정해 용량을 제한한다.
   const approxBytes = base64.length * 0.75;
   if (approxBytes > MAX_BYTES) {
     return new Response(JSON.stringify({ error: "이미지는 5MB 이하만 업로드할 수 있습니다." }), { status: 400 });
   }
 
   const baseName = sanitizeBaseName(payload.filename);
-  const path = `assets/uploads/${Date.now()}-${baseName}.${ext}`;
+  const key = `uploads/${Date.now()}-${baseName}.${ext}`;
 
   try {
-    await putBinaryFile(env, path, base64, `관리자: 이미지 업로드 (${baseName}.${ext})`);
+    const bytes = base64ToBytes(base64);
+    await env.MEDIA.put(key, bytes, { httpMetadata: { contentType: mimeType } });
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e.message || e) }), { status: 502 });
   }
 
-  return new Response(JSON.stringify({ ok: true, url: `/${path}` }), {
+  return new Response(JSON.stringify({ ok: true, url: `/media/${key}` }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });

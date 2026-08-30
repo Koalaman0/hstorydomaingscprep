@@ -4,12 +4,26 @@
   "main": "functions/_worker-entry.js",
   "assets": {
     "directory": ".",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
   },
   "kv_namespaces": [
     {
       "binding": "RATE_LIMIT_KV",
       "id": "09b394b68db94dcea742e7eb9391f04f"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hstory",
+      "database_id": "b1ff4f62-6db2-45ad-a309-13318b3d7204"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "hstorydomaingscprep-media"
     }
   ]
 }

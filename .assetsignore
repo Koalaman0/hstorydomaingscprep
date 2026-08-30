@@ -3,6 +3,7 @@ node_modules/
 .wrangler/
 functions/
 scripts/
+d1/
 package.json
 package-lock.json
 wrangler.jsonc
