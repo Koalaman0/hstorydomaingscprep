@@ -65,7 +65,7 @@ p { margin: 0 0 1em; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.25; }
 .brand-text strong { font-family: var(--font-display); font-size: 19px; color: var(--ink); }
 .brand-text small { color: var(--ink-faint); font-size: 12px; }
-.site-nav ul { display: flex; gap: 4px; }
+.site-nav > ul { display: flex; gap: 4px; }
 .site-nav a { padding: 8px 14px; border-radius: 999px; font-size: 14.5px; color: var(--ink-soft); font-weight: 500; }
 .site-nav a:hover { background: var(--paper-alt); color: var(--ink); }
 .site-nav a.active { background: var(--ink); color: #fff; }
