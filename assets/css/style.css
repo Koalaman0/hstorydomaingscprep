@@ -174,13 +174,13 @@ p { margin: 0 0 1em; }
 .breadcrumb a:hover { text-decoration: underline; }
 
 /* ---------- 글 상세 ---------- */
-.post-header { padding: 28px 0 20px; border-bottom: 1px solid var(--border); }
+.post-header { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
 .post-header h1 { font-size: clamp(26px, 3.6vw, 38px); margin: 10px 0 12px; }
 .post-subtitle { font-size: 17px; color: var(--ink-soft); max-width: 62ch; }
 .post-meta { display: flex; flex-wrap: wrap; gap: 16px; font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-faint); margin-top: 16px; }
 .post-meta strong { color: var(--ink-soft); font-weight: 600; }
 
-.post-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 48px; padding: 40px 0 64px; align-items: start; }
+.post-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 48px; padding: 40px 24px 64px; align-items: start; }
 .post-body { max-width: var(--measure); }
 .post-body h2 { font-size: 22px; margin-top: 2.2em; padding-left: 16px; border-left: 3px solid var(--brass); }
 .post-body h2:first-child { margin-top: 0; }
@@ -236,7 +236,7 @@ p { margin: 0 0 1em; }
 
 .update-note { font-size: 13px; color: var(--ink-faint); border-top: 1px dashed var(--border); margin-top: 32px; padding-top: 16px; }
 
-.related-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 18px; }
+.related-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; margin-top: 18px; }
 
 /* ---------- 칼럼 스타일 (일반 글과 시각적 구분) ---------- */
 .column-header {
@@ -321,7 +321,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--brass); }
 .footer-col ul li { padding: 5px 0; }
 .footer-col ul li a { font-size: 14px; color: #96A1B6; }
 .footer-col ul li a:hover { color: #fff; }
-.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #6B7690; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #6B7690; }
 .footer-bottom a { color: #96A1B6; }
 .footer-bottom a:hover { color: #fff; }
 .footer-contact { margin: 0; }
