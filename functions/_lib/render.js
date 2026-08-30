@@ -4,6 +4,10 @@
 // 커밋/재배포 없이 바로 다음 요청부터 반영된다.
 // 출력 HTML은 build.py가 만들던 것과 최대한 동일하게 맞췄다.
 
+// CSS/JS를 고칠 때마다 이 값을 바꿔주면, 브라우저가 캐시해둔 옛날 파일 대신
+// 새 파일을 받아간다 (안 그러면 배포해도 방문자 브라우저에는 옛날 버전이 계속 보일 수 있음).
+const ASSET_VERSION = "20260830-2";
+
 function esc(s) {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -116,7 +120,7 @@ function head(ctx, title, description, canonicalPath, ogType = "website", jsonLd
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=${ASSET_VERSION}">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4813061242876854"
      crossorigin="anonymous"></script>
 ${ldBlock}`;
@@ -215,7 +219,7 @@ function footerHtml(ctx) {
     <p class="footer-contact">문의: <a href="mailto:${ctx.SITE.email}">${esc(ctx.SITE.email)}</a></p>
   </div>
 </footer>
-<script src="/assets/js/common.js"></script>`;
+<script src="/assets/js/common.js?v=${ASSET_VERSION}"></script>`;
 }
 
 function page(ctx, title, description, canonicalPath, activeNav, bodyHtml, opts = {}) {
@@ -729,7 +733,7 @@ ${headerHtml(ctx, "/login/")}
 ${body}
 </main>
 ${footerHtml(ctx)}
-<script src="/assets/js/login.js"></script>
+<script src="/assets/js/login.js?v=${ASSET_VERSION}"></script>
 </body>
 </html>`;
 }
@@ -942,8 +946,8 @@ ${head(ctx, "관리자 모드 — " + ctx.SITE.name, "관리자 전용 콘텐츠
 <body>
 <div id="admin-root"></div>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
-<script src="/assets/js/common.js"></script>
-<script src="/assets/js/admin.js"></script>
+<script src="/assets/js/common.js?v=${ASSET_VERSION}"></script>
+<script src="/assets/js/admin.js?v=${ASSET_VERSION}"></script>
 </body>
 </html>`;
 }

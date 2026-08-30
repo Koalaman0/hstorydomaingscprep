@@ -53,16 +53,24 @@
       });
     }
 
-    // 카테고리 드롭다운: CSS :hover만 쓰면, 방금 그 링크를 클릭해서 이 페이지로
-    // 들어온 경우 마우스 커서가 그 자리에 그대로 있어서 움직이지 않아도 계속
-    // 펼쳐진 채로 보인다. mouseenter/focus 같은 "실제 이벤트"가 있을 때만
-    // 열리도록 JS로 처리해 그 문제를 없앤다.
+    // 카테고리 드롭다운: mouseenter만 보고 열면, 페이지가 새로 열릴 때 마우스 커서가
+    // 우연히 그 위에 있기만 해도(실제로 움직이지 않아도) 브라우저가 hit-test 때문에
+    // mouseenter를 스스로 쏴버려서 똑같이 저절로 열려있는 것처럼 보인다. 그래서
+    // mouseenter는 "커서가 그 영역 안에 있다"는 상태만 기록해두고, 그 안에서 실제
+    // mousemove(진짜 마우스가 움직였을 때만 발생)가 한 번이라도 일어나야 그때 연다.
     document.querySelectorAll(".site-nav li.has-dropdown").forEach(function (li) {
       var dropdown = li.querySelector(".nav-dropdown");
       var link = li.querySelector("a");
       if (!dropdown) return;
-      li.addEventListener("mouseenter", function () { dropdown.classList.add("is-open"); });
-      li.addEventListener("mouseleave", function () { dropdown.classList.remove("is-open"); });
+      var pointerInside = false;
+      li.addEventListener("mouseenter", function () { pointerInside = true; });
+      li.addEventListener("mousemove", function () {
+        if (pointerInside) dropdown.classList.add("is-open");
+      });
+      li.addEventListener("mouseleave", function () {
+        pointerInside = false;
+        dropdown.classList.remove("is-open");
+      });
       if (link) link.addEventListener("focus", function () { dropdown.classList.add("is-open"); });
       li.addEventListener("focusout", function (e) {
         if (!li.contains(e.relatedTarget)) dropdown.classList.remove("is-open");
